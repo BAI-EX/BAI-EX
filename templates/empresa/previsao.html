@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}Previsão de Risco IA — BAI-EX{% endblock %}
+{% block sidebar %}
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo"><img src="/static/logo_baiex.png" alt="BAI-EX" style="height:26px;filter:invert(1);mix-blend-mode:screen"></div>
+    <div class="brand-sub">{{ session.empresa_nome[:28] }}</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Principal</div>
+    <a href="/empresa/dashboard"><i class="bi bi-speedometer2"></i>Dashboard</a>
+    <a href="/empresa/alertas"><i class="bi bi-bell"></i>Alertas</a>
+    <a href="/empresa/previsao" class="active"><i class="bi bi-graph-up-arrow"></i>Previsão IA</a>
+    <a href="/empresa/chat"><i class="bi bi-robot"></i>BAIA — Chat IA</a>
+    <div class="nav-section">Gestão</div>
+    <a href="/empresa/funcionarios"><i class="bi bi-people"></i>Funcionários</a>
+    <a href="/empresa/relatorio"><i class="bi bi-file-earmark-text"></i>Relatório</a>
+    <a href="/empresa/relatorio/ia"><i class="bi bi-file-earmark-richtext"></i>Relatório IA ✨</a>
+    <div class="nav-section">Conta</div>
+    <a href="/empresa/conta"><i class="bi bi-person-gear"></i>Minha Conta</a>
+    <a href="/empresa/logout"><i class="bi bi-box-arrow-left"></i>Sair</a>
+  </nav>
+  <div class="sidebar-footer">BAI-EX © 2025</div>
+</aside>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .trend-up   { color: #f87171 }
+  .trend-down { color: #10B981 }
+  .trend-stable { color: #8B949E }
+  .escalada-badge { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3); color: #f87171; border-radius: 12px; padding: .15rem .6rem; font-size: .72rem; font-weight: 700; }
+  .prev-bar-wrap { width: 100%; }
+  .prev-bar { height: 6px; border-radius: 3px; transition: width .5s; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="topbar">
+  <div>
+    <h1 style="font-size:1.5rem;font-weight:700;color:#fff;margin:0">Previsão de Risco <i class="bi bi-graph-up-arrow" style="color:#0891B2;font-size:1.2rem"></i></h1>
+    <p style="color:var(--radar-muted);font-size:.82rem;margin:.25rem 0 0">Projeção para a próxima semana baseada na tendência individual de cada colaborador</p>
+  </div>
+</div>
+
+<!-- KPIs preditivos -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card-radar text-center">
+      <div class="card-title"><i class="bi bi-people me-1"></i>Analisados</div>
+      <div class="metric-value">{{ total }}</div>
+      <div class="metric-sub">colaboradores com histórico suficiente</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card-radar text-center" style="border-color:{% if em_escalada > 0 %}rgba(239,68,68,.3){% else %}var(--radar-border){% endif %}">
+      <div class="card-title"><i class="bi bi-exclamation-triangle me-1"></i>Em Escalada</div>
+      <div class="metric-value" style="color:{% if em_escalada > 0 %}#f87171{% else %}#10B981{% endif %}">{{ em_escalada }}</div>
+      <div class="metric-sub">risco deve aumentar de nível</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card-radar text-center">
+      <div class="card-title"><i class="bi bi-shield-exclamation me-1"></i>Alto/Crítico Previsto</div>
+      <div class="metric-value" style="color:{% if alto_previsto > 0 %}#f87171{% else %}#10B981{% endif %}">{{ alto_previsto }}</div>
+      <div class="metric-sub">na próxima semana</div>
+    </div>
+  </div>
+</div>
+
+{% if em_escalada > 0 %}
+<div class="alert-radar mb-4" style="background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25);color:#fca5a5">
+  <i class="bi bi-exclamation-octagon-fill me-2"></i>
+  <strong>{{ em_escalada }} colaborador{{ 's' if em_escalada > 1 else '' }}</strong> com tendência de escalada de risco. Ação preventiva recomendada antes da próxima semana.
+</div>
+{% endif %}
+
+<!-- Tabela preditiva -->
+<div class="card-radar">
+  <div class="card-title"><i class="bi bi-table me-1"></i>Projeção Individual — Próxima Semana</div>
+  <div class="table-responsive">
+    <table class="table-radar">
+      <thead>
+        <tr>
+          <th>Colaborador</th>
+          <th>Score Atual</th>
+          <th>Score Previsto</th>
+          <th>Tendência</th>
+          <th>Nível Atual</th>
+          <th>Nível Previsto</th>
+          <th>Dimensão Crítica</th>
+          <th>Semanas de Dados</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in previsoes %}
+        <tr {% if p.risco_escalada %}style="background:rgba(239,68,68,.04)"{% endif %}>
+          <td>
+            <div style="font-weight:600;color:#fff">{{ p.funcionario.nome }}</div>
+            <div style="font-size:.75rem;color:var(--radar-muted)">{{ p.funcionario.departamento }}</div>
+            {% if p.risco_escalada %}<span class="escalada-badge">⚠ Escalada</span>{% endif %}
+          </td>
+          <td>
+            <div style="font-weight:700">{{ p.score_atual }}</div>
+            <div class="prev-bar-wrap mt-1">
+              <div class="prev-bar" style="width:{{ p.score_atual }}%;background:{% if p.score_atual < 25 %}#10B981{% elif p.score_atual < 50 %}#0891B2{% elif p.score_atual < 75 %}#f59e0b{% else %}#ef4444{% endif %}"></div>
+            </div>
+          </td>
+          <td>
+            <div style="font-weight:700;color:{% if p.score_previsto > p.score_atual + 5 %}#f87171{% elif p.score_previsto < p.score_atual - 5 %}#10B981{% else %}#F0F6FC{% endif %}">
+              {{ p.score_previsto }}
+            </div>
+            <div class="prev-bar-wrap mt-1">
+              <div class="prev-bar" style="width:{{ p.score_previsto }}%;background:{% if p.score_previsto < 25 %}#10B981{% elif p.score_previsto < 50 %}#0891B2{% elif p.score_previsto < 75 %}#f59e0b{% else %}#ef4444{% endif %}"></div>
+            </div>
+          </td>
+          <td>
+            {% if p.tendencia == 'subindo' %}
+              <span class="trend-up"><i class="bi bi-arrow-up-right"></i> +{{ p.delta }}</span>
+            {% elif p.tendencia == 'descendo' %}
+              <span class="trend-down"><i class="bi bi-arrow-down-right"></i> {{ p.delta }}</span>
+            {% else %}
+              <span class="trend-stable"><i class="bi bi-dash"></i> {{ p.delta }}</span>
+            {% endif %}
+          </td>
+          <td><span class="badge-risco badge-risco-{{ p.nivel_atual }}">{{ risco_emoji(p.nivel_atual) }} {{ p.nivel_atual.title() }}</span></td>
+          <td><span class="badge-risco badge-risco-{{ p.nivel_previsto }}">{{ risco_emoji(p.nivel_previsto) }} {{ p.nivel_previsto.title() }}</span></td>
+          <td style="font-size:.82rem;color:var(--radar-muted)">{{ p.pior_dim }}</td>
+          <td style="font-size:.82rem;text-align:center">
+            <span style="color:{% if p.semanas_dados >= 4 %}#10B981{% else %}#f59e0b{% endif %}">{{ p.semanas_dados }}w</span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card-radar mt-3" style="background:rgba(8,145,178,.05);border-color:rgba(8,145,178,.2)">
+  <div class="card-title" style="color:#22D3EE"><i class="bi bi-info-circle me-1"></i>Como a previsão é calculada</div>
+  <p style="font-size:.83rem;color:var(--radar-muted);margin:0">
+    A projeção usa <strong style="color:#F0F6FC">regressão de tendência linear</strong> nos últimos 4 check-ins de cada colaborador, com peso maior para as semanas mais recentes e ajuste pela aceleração da mudança. Colaboradores com menos de 2 semanas de dados não aparecem na previsão. Precisão aumenta com mais semanas de histórico (indicador de cor nas colunas).
+  </p>
+</div>
+{% endblock %}

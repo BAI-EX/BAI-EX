@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Upgrade necessário — BAI-EX{% endblock %}
+
+{% block sidebar %}
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo"><img src="/static/logo_baiex.png" alt="BAI-EX" style="height:26px;filter:invert(1);mix-blend-mode:screen"></div>
+    <div class="brand-sub">{{ session.empresa_nome[:28] }}</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Principal</div>
+    <a href="/empresa/dashboard"><i class="bi bi-speedometer2"></i>Dashboard</a>
+    <a href="/empresa/alertas"><i class="bi bi-bell"></i>Alertas</a>
+    <div class="nav-section">Conta</div>
+    <a href="/empresa/conta"><i class="bi bi-person-gear"></i>Minha Conta</a>
+    <a href="/empresa/logout"><i class="bi bi-box-arrow-left"></i>Sair</a>
+  </nav>
+  <div class="sidebar-footer">BAI-EX © 2025</div>
+</aside>
+{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:center;min-height:80vh">
+  <div style="max-width:480px;width:100%;text-align:center">
+
+    <!-- Ícone -->
+    <div style="width:72px;height:72px;background:rgba(8,145,178,.15);border:1.5px solid #0891B2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem">
+      <i class="bi bi-lock-fill" style="font-size:1.8rem;color:#22D3EE"></i>
+    </div>
+
+    <h2 style="color:var(--radar-text);margin:0 0 .5rem;font-size:1.4rem">Funcionalidade Premium</h2>
+    <p style="color:var(--radar-muted);font-size:.9rem;margin:0 0 2rem;line-height:1.6">
+      Este recurso está disponível a partir do plano
+      <strong style="color:#22D3EE">{{ plano_necessario }}</strong>.
+      Seu plano atual é <strong style="color:var(--radar-text)">{{ plano_atual | title }}</strong>.
+    </p>
+
+    {% if trial_expirado %}
+    <div class="alert-radar mb-4" style="background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:#f87171;text-align:left">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      <strong>Período de teste expirado.</strong> Ative uma assinatura para continuar usando o BAI-EX.
+    </div>
+    {% endif %}
+
+    <!-- O que você ganha -->
+    <div style="background:var(--radar-card);border:1px solid var(--radar-border);border-radius:12px;padding:1.5rem;text-align:left;margin-bottom:1.5rem">
+      <p style="color:var(--radar-muted);font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin:0 0 1rem">O que você desbloqueia</p>
+      {% set recursos = {
+        'profissional': [
+          'Frequência configurável (semanal / quinzenal / mensal)',
+          'Relatório NR-01 completo com IA',
+          'Previsão preditiva de risco (IA)',
+          'BAIA — Chat IA para RH',
+          'Análise por departamento',
+          'Histórico de 12 meses',
+        ],
+        'empresarial': [
+          'Benchmark anônimo por setor',
+          'Multi-unidades / filiais',
+          'Relatório consolidado por filial',
+        ],
+      } %}
+      {% for item in recursos.get(plano_necessario.lower(), recursos['profissional']) %}
+      <div style="display:flex;align-items:center;gap:.6rem;padding:.4rem 0;border-bottom:1px solid var(--radar-border)">
+        <i class="bi bi-check-circle-fill" style="color:#10B981;font-size:.85rem"></i>
+        <span style="color:var(--radar-text);font-size:.85rem">{{ item }}</span>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- CTAs -->
+    <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap">
+      <a href="/empresa/conta" style="display:inline-flex;align-items:center;gap:.4rem;background:#0891B2;color:#fff;font-weight:700;font-size:.9rem;padding:.7rem 1.4rem;border-radius:8px;text-decoration:none">
+        <i class="bi bi-arrow-up-circle"></i> Ver planos e fazer upgrade
+      </a>
+      <a href="/empresa/dashboard" style="display:inline-flex;align-items:center;gap:.4rem;background:transparent;color:var(--radar-muted);font-size:.9rem;padding:.7rem 1rem;border-radius:8px;text-decoration:none;border:1px solid var(--radar-border)">
+        <i class="bi bi-arrow-left"></i> Voltar
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

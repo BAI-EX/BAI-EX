@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block title %}Parecer IA NR-01 — BAI-EX{% endblock %}
+{% block sidebar %}
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo"><img src="/static/logo_baiex.png" alt="BAI-EX" style="height:26px;filter:invert(1);mix-blend-mode:screen"></div>
+    <div class="brand-sub">{{ session.empresa_nome[:28] }}</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Principal</div>
+    <a href="/empresa/dashboard"><i class="bi bi-speedometer2"></i>Dashboard</a>
+    <a href="/empresa/alertas"><i class="bi bi-bell"></i>Alertas</a>
+    <a href="/empresa/previsao"><i class="bi bi-graph-up-arrow"></i>Previsão IA</a>
+    <a href="/empresa/chat"><i class="bi bi-robot"></i>BAIA — Chat IA</a>
+    <div class="nav-section">Gestão</div>
+    <a href="/empresa/funcionarios"><i class="bi bi-people"></i>Funcionários</a>
+    <a href="/empresa/relatorio"><i class="bi bi-file-earmark-text"></i>Relatório</a>
+    <a href="/empresa/relatorio/ia" class="active"><i class="bi bi-file-earmark-richtext"></i>Relatório IA ✨</a>
+    <div class="nav-section">Conta</div>
+    <a href="/empresa/conta"><i class="bi bi-person-gear"></i>Minha Conta</a>
+    <a href="/empresa/logout"><i class="bi bi-box-arrow-left"></i>Sair</a>
+  </nav>
+  <div class="sidebar-footer">BAI-EX © 2025</div>
+</aside>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .ia-badge { background: linear-gradient(135deg, rgba(8,145,178,.2), rgba(16,185,129,.15)); border: 1px solid rgba(8,145,178,.4); border-radius: 20px; padding: .3rem 1rem; font-size: .75rem; font-weight: 700; color: #22D3EE; display: inline-flex; align-items: center; gap: .4rem; }
+  .parecer-box { background: rgba(255,255,255,.03); border: 1px solid var(--radar-border); border-radius: 12px; padding: 2rem; min-height: 300px; font-size: .92rem; line-height: 1.75; color: var(--radar-text); white-space: pre-wrap; font-family: 'Inter', sans-serif; }
+  .parecer-box h1, .parecer-box h2, .parecer-box h3 { color: #fff; margin: 1.25rem 0 .5rem; font-size: 1rem; font-weight: 700; }
+  .parecer-box strong { color: #22D3EE; }
+  .cursor-blink { display: inline-block; width: 2px; height: 1em; background: #22D3EE; animation: blink .8s steps(1) infinite; vertical-align: middle; margin-left: 2px; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  .status-bar { display: flex; align-items: center; gap: .75rem; padding: .75rem 1rem; background: rgba(8,145,178,.08); border: 1px solid rgba(8,145,178,.2); border-radius: 10px; font-size: .85rem; color: #22D3EE; margin-bottom: 1rem; }
+  .dot-pulse { width: 8px; height: 8px; border-radius: 50%; background: #10B981; animation: pulse 1.5s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.8)} }
+  .info-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .75rem; margin-bottom: 1.5rem; }
+  .info-item { background: var(--radar-card); border: 1px solid var(--radar-border); border-radius: 10px; padding: .85rem; text-align: center; }
+  .info-item .val { font-size: 1.4rem; font-weight: 700; color: #fff; }
+  .info-item .lbl { font-size: .72rem; color: var(--radar-muted); margin-top: .2rem; text-transform: uppercase; letter-spacing: .04em; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="topbar">
+  <div>
+    <h1 style="font-size:1.5rem;font-weight:700;color:#fff;margin:0">
+      Parecer Técnico NR-01 <span class="ia-badge ms-2"><i class="bi bi-stars"></i>Gerado por IA</span>
+    </h1>
+    <p style="color:var(--radar-muted);font-size:.82rem;margin:.25rem 0 0">Análise narrativa automática baseada nos dados reais da empresa</p>
+  </div>
+  <div class="d-flex gap-2">
+    <button onclick="window.print()" class="btn-outline-radar"><i class="bi bi-printer"></i>Imprimir</button>
+    <button onclick="gerarParecer()" class="btn-primary-radar" id="btnGerar"><i class="bi bi-sparkle"></i>Gerar Parecer</button>
+  </div>
+</div>
+
+<!-- Dados contextuais -->
+<div class="info-grid">
+  <div class="info-item">
+    <div class="val">{{ dados.total_funcionarios }}</div>
+    <div class="lbl">Funcionários</div>
+  </div>
+  <div class="info-item">
+    <div class="val">{{ dados.score_atual }}</div>
+    <div class="lbl">Score Atual</div>
+  </div>
+  <div class="info-item">
+    <div class="val">{{ dados.taxa_resposta }}%</div>
+    <div class="lbl">Taxa Resposta</div>
+  </div>
+  <div class="info-item">
+    <div class="val">{{ dados.funcionarios_criticos | length }}</div>
+    <div class="lbl">Em Risco Alto</div>
+  </div>
+</div>
+
+<div id="statusBar" class="status-bar" style="display:none!important">
+  <div class="dot-pulse"></div>
+  <span id="statusText">Analisando dados e gerando parecer técnico...</span>
+</div>
+
+<div class="card-radar">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="card-title mb-0"><i class="bi bi-file-earmark-richtext me-1" style="color:#22D3EE"></i>Parecer Técnico — Semana {{ dados.semana }}/{{ dados.ano }}</div>
+    <span style="font-size:.75rem;color:var(--radar-muted)">{{ dados.empresa }}</span>
+  </div>
+
+  <div id="parecerBox" class="parecer-box">
+    <div style="color:var(--radar-muted);text-align:center;padding:3rem 0">
+      <i class="bi bi-stars" style="font-size:2rem;color:#21262D"></i>
+      <p style="margin:.75rem 0 0;font-size:.9rem">Clique em <strong style="color:#F0F6FC">Gerar Parecer</strong> para criar a análise narrativa com IA</p>
+    </div>
+  </div>
+</div>
+
+<div class="card-radar mt-3" style="background:rgba(8,145,178,.05);border-color:rgba(8,145,178,.2)">
+  <div class="card-title" style="color:#22D3EE"><i class="bi bi-info-circle me-1"></i>Sobre este documento</div>
+  <p style="font-size:.84rem;color:var(--radar-muted);margin:0">
+    Este parecer é gerado pela IA da BAI-EX com base nos dados coletados via check-ins semanais. 
+    Pode ser utilizado como evidência de monitoramento ativo na <strong style="color:#F0F6FC">NR-01</strong>. 
+    Para validade jurídica completa, recomenda-se revisão e assinatura por médico do trabalho ou psicólogo organizacional.
+  </p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let gerando = false;
+
+function gerarParecer() {
+  if (gerando) return;
+  gerando = true;
+
+  const btn = document.getElementById('btnGerar');
+  const box = document.getElementById('parecerBox');
+  const status = document.getElementById('statusBar');
+
+  btn.innerHTML = '<i class="bi bi-hourglass-split"></i>Gerando...';
+  btn.disabled = true;
+  box.innerHTML = '<span class="cursor-blink"></span>';
+  status.style.cssText = 'display:flex!important';
+
+  let texto = '';
+  const evtSource = new EventSource('/empresa/relatorio/ia/stream');
+
+  evtSource.onmessage = function(e) {
+    if (e.data === '[DONE]') {
+      evtSource.close();
+      gerando = false;
+      btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i>Regerar';
+      btn.disabled = false;
+      status.style.cssText = 'display:none!important';
+      // Remove cursor
+      const cursor = box.querySelector('.cursor-blink');
+      if (cursor) cursor.remove();
+      return;
+    }
+    if (e.data.startsWith('[ERRO]')) {
+      box.innerHTML = `<div style="color:#f87171">${e.data}</div>`;
+      evtSource.close();
+      gerando = false;
+      btn.innerHTML = '<i class="bi bi-sparkle"></i>Tentar novamente';
+      btn.disabled = false;
+      status.style.cssText = 'display:none!important';
+      return;
+    }
+
+    const chunk = e.data.replaceAll('|||', '\n');
+    texto += chunk;
+
+    // Renderizar com formatação básica
+    let html = texto
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/^#{1,3} (.+)$/gm, '<h3>$1</h3>')
+      .replace(/\n/g, '<br>');
+
+    box.innerHTML = html + '<span class="cursor-blink"></span>';
+    box.scrollTop = box.scrollHeight;
+  };
+
+  evtSource.onerror = function() {
+    evtSource.close();
+    if (gerando) {
+      box.innerHTML += '<br><span style="color:#f87171">Conexão interrompida.</span>';
+      gerando = false;
+      btn.innerHTML = '<i class="bi bi-sparkle"></i>Tentar novamente';
+      btn.disabled = false;
+    }
+  };
+}
+</script>
+{% endblock %}

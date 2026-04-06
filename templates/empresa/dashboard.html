@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+{% block title %}Dashboard RH — BAI-EX{% endblock %}
+
+{% block sidebar %}
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo"><img src="/static/logo_baiex.png" alt="BAI-EX" style="height:26px;filter:invert(1);mix-blend-mode:screen"></div>
+    <div class="brand-sub">{{ session.empresa_nome[:28] }}</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Principal</div>
+    <a href="/empresa/dashboard" class="active"><i class="bi bi-speedometer2"></i>Dashboard</a>
+    <a href="/empresa/alertas"><i class="bi bi-bell"></i>Alertas <span class="badge ms-auto" style="background:rgba(239,68,68,.2);color:#f87171;font-size:.7rem">!</span></a>
+    <div class="nav-section">Inteligência Artificial</div>
+    <a href="/empresa/previsao"><i class="bi bi-graph-up-arrow"></i>Previsão IA</a>
+    <a href="/empresa/relatorio/ia"><i class="bi bi-file-earmark-richtext"></i>Relatório IA ✨</a>
+    <a href="/empresa/chat"><i class="bi bi-robot"></i>BAIA — Chat IA</a>
+    <div class="nav-section">Gestão</div>
+    <a href="/empresa/funcionarios"><i class="bi bi-people"></i>Funcionários</a>
+    <a href="/empresa/relatorio"><i class="bi bi-file-earmark-text"></i>Relatório NR-01</a>
+    <div class="nav-section">Conta</div>
+    <a href="/empresa/conta"><i class="bi bi-person-gear"></i>Minha Conta</a>
+    <a href="/empresa/logout"><i class="bi bi-box-arrow-left"></i>Sair</a>
+  </nav>
+  <div class="sidebar-footer">BAI-EX © 2025</div>
+</aside>
+{% endblock %}
+
+{% block content %}
+<div class="topbar">
+  <div>
+    <h1 class="page-header" style="margin:0">Visão Geral <span style="color:var(--radar-muted);font-size:1rem;font-weight:400">— Semana {{ semana }}</span></h1>
+    <p style="color:var(--radar-muted);font-size:.82rem;margin:.2rem 0 0"><i class="bi bi-calendar3 me-1"></i>Dados atualizados em tempo real</p>
+  </div>
+  <div class="user-pill">
+    <div class="user-avatar">{{ session.empresa_nome[0] }}</div>
+    {{ session.empresa_nome[:20] }}
+  </div>
+</div>
+
+<!-- BANNER TRIAL / PAGAMENTO -->
+{% if empresa.em_trial %}
+{% set dias_r = empresa.dias_trial_restantes %}
+<div style="background:linear-gradient(135deg,rgba(8,145,178,.15),rgba(14,116,144,.1));border:1px solid #0891B2;border-radius:12px;padding:14px 20px;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+  <div>
+    <span style="color:#22D3EE;font-weight:700;font-size:.9rem">🎯 Período de teste ativo</span>
+    <span style="color:#8B949E;font-size:.82rem;margin-left:.5rem">— Plano {{ empresa.plano_base | title }}</span>
+    {% if dias_r is not none %}
+    <span style="color:{% if dias_r <= 3 %}#EF4444{% elif dias_r <= 7 %}#F59E0B{% else %}#10B981{% endif %};font-weight:700;font-size:.82rem;margin-left:.4rem">
+      ({{ dias_r }} dia{{ 's' if dias_r != 1 }})
+    </span>
+    {% endif %}
+  </div>
+  <a href="/assinar/{{ empresa.plano_base }}"
+     style="background:#0891B2;color:#fff;font-weight:700;font-size:.82rem;padding:.45rem 1rem;border-radius:8px;text-decoration:none;white-space:nowrap">
+    💳 Ativar assinatura →
+  </a>
+</div>
+{% elif empresa.cancelado %}
+<div class="alert-radar mb-4" style="background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:#f87171">
+  <i class="bi bi-exclamation-octagon-fill me-2"></i>
+  <strong>Assinatura cancelada.</strong> Seu acesso continua até o fim do período pago.
+  <a href="/empresa/conta" style="color:#fca5a5;margin-left:.5rem">Ver detalhes →</a>
+</div>
+{% endif %}
+
+<!-- ALERTA CRÍTICO -->
+{% if risco_alto > 0 %}
+<div class="alert-radar mb-4" style="background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:#f87171">
+  <i class="bi bi-exclamation-octagon-fill me-2"></i>
+  <strong>{{ risco_alto }} funcionário{{ 's' if risco_alto > 1 }} com risco alto ou crítico</strong> esta semana.
+  <a href="/empresa/alertas" style="color:#fca5a5;margin-left:.5rem">Ver alertas →</a>
+</div>
+{% endif %}
+
+<!-- KPI CARDS -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card-radar">
+      <div class="card-title"><i class="bi bi-shield-half me-1"></i>Risco Geral</div>
+      <div class="metric-value">
+        <span class="badge-risco badge-risco-{{ nivel_geral }}">{{ risco_emoji(nivel_geral) }} {{ nivel_geral.title() }}</span>
+      </div>
+      <div class="metric-sub">Score médio: {{ score_medio }}/100</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card-radar">
+      <div class="card-title"><i class="bi bi-people me-1"></i>Funcionários</div>
+      <div class="metric-value">{{ total_func }}</div>
+      <div class="metric-sub">ativos na empresa</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card-radar">
+      <div class="card-title"><i class="bi bi-check2-circle me-1"></i>Taxa de Resposta</div>
+      <div class="metric-value">{{ taxa_resposta }}<span style="font-size:1rem;color:var(--radar-muted)">%</span></div>
+      <div class="metric-sub">{{ respostas_semana }} de {{ total_func }} responderam</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card-radar">
+      <div class="card-title"><i class="bi bi-exclamation-triangle me-1"></i>Risco Alto/Crítico</div>
+      <div class="metric-value" style="color:{% if risco_alto > 0 %}#ef4444{% else %}#22c55e{% endif %}">{{ risco_alto }}</div>
+      <div class="metric-sub">{{ risco_moderado }} em risco moderado</div>
+    </div>
+  </div>
+</div>
+
+<!-- GRÁFICOS -->
+<div class="row g-3 mb-4">
+  <div class="col-md-8">
+    <div class="card-radar">
+      <div class="card-title"><i class="bi bi-graph-up me-1"></i>Evolução do Score de Risco (últimas 8 semanas)</div>
+      <canvas id="evolChart"></canvas>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card-radar">
+      <div class="card-title"><i class="bi bi-pie-chart me-1"></i>Distribuição de Risco</div>
+      <canvas id="distChart"></canvas>
+      <div class="mt-3">
+        {% for nivel, qtd in dist.items() %}
+        <div class="d-flex justify-content-between align-items-center mb-1" style="font-size:.82rem">
+          <span class="badge-risco badge-risco-{{ nivel }}">{{ risco_emoji(nivel) }} {{ nivel.title() }}</span>
+          <span style="color:var(--radar-text);font-weight:600">{{ qtd }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TABELA FUNCIONÁRIOS -->
+<div class="card-radar">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="card-title mb-0"><i class="bi bi-list-ul me-1"></i>Funcionários — Risco Atual</div>
+    <a href="/empresa/funcionarios/novo" class="btn-primary-radar" style="font-size:.82rem;padding:.4rem .9rem"><i class="bi bi-person-plus"></i>Novo</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table-radar">
+      <thead>
+        <tr>
+          <th>Funcionário</th>
+          <th>Departamento</th>
+          <th>Último Check-in</th>
+          <th>Score</th>
+          <th>Risco</th>
+          <th>Tendência</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in func_risco %}
+        <tr>
+          <td>
+            <div style="font-weight:600;color:#fff">{{ item.funcionario.nome }}</div>
+            <div style="font-size:.76rem;color:var(--radar-muted)">{{ item.funcionario.cargo }}</div>
+          </td>
+          <td><span style="font-size:.82rem">{{ item.funcionario.departamento }}</span></td>
+          <td style="font-size:.82rem;color:var(--radar-muted)">
+            {% if item.checkin %}{{ item.checkin.data.strftime('%d/%m/%Y') }}{% else %}<span style="color:#1C2128">Sem dados</span>{% endif %}
+          </td>
+          <td>
+            {% if item.checkin %}
+            <div style="min-width:80px">
+              <div style="font-weight:700;font-size:.88rem;color:#fff">{{ item.checkin.score }}</div>
+              <div class="score-bar mt-1">
+                <div class="score-fill" style="width:{{ item.checkin.score }}%;background:{% if item.checkin.score < 30 %}#22c55e{% elif item.checkin.score < 55 %}#eab308{% elif item.checkin.score < 75 %}#ef4444{% else %}#22D3EE{% endif %}"></div>
+              </div>
+            </div>
+            {% else %}<span style="color:#1C2128">—</span>{% endif %}
+          </td>
+          <td>
+            {% if item.checkin %}
+            <span class="badge-risco badge-risco-{{ item.checkin.nivel_risco }}">{{ risco_emoji(item.checkin.nivel_risco) }} {{ item.checkin.nivel_risco.title() }}</span>
+            {% else %}<span style="color:#1C2128;font-size:.82rem">Sem resposta</span>{% endif %}
+          </td>
+          <td style="font-size:.82rem">
+            {% if item.checkin %}
+              {% if item.checkin.score > 60 %}<span style="color:#f87171"><i class="bi bi-arrow-up-right"></i> Crescendo</span>
+              {% elif item.checkin.score < 30 %}<span style="color:#4ade80"><i class="bi bi-arrow-down-right"></i> Estável</span>
+              {% else %}<span style="color:#eab308"><i class="bi bi-dash"></i> Monitorar</span>{% endif %}
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const hist = {{ historico | tojson }};
+const labels = hist.map(h => h.semana);
+const scores = hist.map(h => h.score);
+const respostas = hist.map(h => h.respostas);
+
+// Gráfico evolução
+const ctx1 = document.getElementById('evolChart').getContext('2d');
+new Chart(ctx1, {
+  type: 'line',
+  data: {
+    labels,
+    datasets: [{
+      label: 'Score de Risco',
+      data: scores,
+      borderColor: '#22D3EE',
+      backgroundColor: 'rgba(8,145,178,.15)',
+      fill: true,
+      tension: 0.4,
+      pointBackgroundColor: '#10B981',
+      pointRadius: 5,
+    }, {
+      label: 'Respostas',
+      data: respostas,
+      borderColor: '#22c55e',
+      backgroundColor: 'transparent',
+      tension: 0.4,
+      borderDash: [5,5],
+      pointRadius: 3,
+      yAxisID: 'y2'
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { labels: { color: '#8B949E', font: { size: 11 } } } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,.04)' }, ticks: { color: '#8B949E', font: { size: 11 } } },
+      y: { grid: { color: 'rgba(255,255,255,.04)' }, ticks: { color: '#8B949E', font: { size: 11 } }, min: 0, max: 100 },
+      y2: { position: 'right', grid: { display: false }, ticks: { color: '#4ade80', font: { size: 10 } } }
+    }
+  }
+});
+
+// Donut distribuição
+const dist = {{ dist | tojson }};
+const ctx2 = document.getElementById('distChart').getContext('2d');
+new Chart(ctx2, {
+  type: 'doughnut',
+  data: {
+    labels: ['Baixo', 'Moderado', 'Alto', 'Crítico'],
+    datasets: [{
+      data: [dist.baixo, dist.moderado, dist.alto, dist.critico],
+      backgroundColor: ['rgba(34,197,94,.7)', 'rgba(234,179,8,.7)', 'rgba(239,68,68,.7)', 'rgba(34,211,238,.7)'],
+      borderWidth: 0,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    cutout: '70%'
+  }
+});
+</script>
+{% endblock %}

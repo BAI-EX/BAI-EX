@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}Admin — BAI-EX{% endblock %}
+{% block sidebar %}
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo"><img src="/static/logo_baiex.png" alt="BAI-EX" style="height:26px;filter:invert(1);mix-blend-mode:screen"></div>
+    <div class="brand-sub">Painel Administrativo</div>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="/admin/dashboard" class="active"><i class="bi bi-grid"></i>Visão Geral</a>
+    <a href="/admin/logout"><i class="bi bi-box-arrow-left"></i>Sair</a>
+  </nav>
+  <div class="sidebar-footer">BAI-EX © 2025</div>
+</aside>
+{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <h1 style="font-size:1.5rem;font-weight:700;color:#fff;margin:0">Painel Admin</h1>
+    <p style="color:var(--radar-muted);font-size:.82rem;margin:.2rem 0 0">Visão geral de todas as empresas</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="/admin/backup" class="btn-outline-radar" style="font-size:.82rem;padding:.4rem .9rem">
+      <i class="bi bi-download"></i>Backup JSON
+    </a>
+    <a href="/admin/logs" class="btn-outline-radar" style="font-size:.82rem;padding:.4rem .9rem">
+      <i class="bi bi-journal-text"></i>Logs de Auditoria
+    </a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card-radar text-center">
+      <div class="card-title">Empresas</div>
+      <div class="metric-value">{{ total_empresas }}</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card-radar text-center">
+      <div class="card-title">Funcionários</div>
+      <div class="metric-value">{{ total_func }}</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card-radar text-center">
+      <div class="card-title">Check-ins Totais</div>
+      <div class="metric-value">{{ total_checkins }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="card-radar">
+  <div class="card-title"><i class="bi bi-building me-1"></i>Empresas Cadastradas</div>
+  <table class="table-radar">
+    <thead><tr>
+      <th>Empresa</th><th>CNPJ</th><th>Plano</th><th>Func.</th>
+      <th>Check-ins</th><th>Score</th><th>Cadastro</th><th>Ações</th>
+    </tr></thead>
+    <tbody>
+      {% for d in empresas_data %}
+      <tr style="opacity:{% if not d.empresa.ativo %}0.5{% else %}1{% endif %}">
+        <td>
+          <div style="font-weight:600;color:#fff">{{ d.empresa.nome }}</div>
+          <div style="font-size:.75rem;color:var(--radar-muted)">{{ d.empresa.responsavel }}</div>
+          {% if d.empresa.cancelado %}
+          <span style="font-size:.65rem;color:#EF4444;font-weight:600">CANCELADO</span>
+          {% endif %}
+        </td>
+        <td style="font-size:.82rem;color:var(--radar-muted)">{{ d.empresa.cnpj }}</td>
+        <td>
+          {# Badge de plano #}
+          {% set pb = d.empresa.plano_base %}
+          {% set cores = {'starter1':'#6E7681','starter2':'#8B949E','profissional':'#0891B2','empresarial':'#7C3AED','enterprise':'#D97706'} %}
+          {% set cor = cores.get(pb, '#6E7681') %}
+          <span style="background:{{ cor }}22;color:{{ cor }};border:1px solid {{ cor }}55;border-radius:12px;padding:.2rem .6rem;font-size:.72rem;font-weight:700;display:inline-block;margin-bottom:.2rem">
+            {{ d.plano_info.nome }}
+          </span><br>
+          {% if d.empresa.em_trial %}
+          <span style="font-size:.65rem;color:#F59E0B;font-weight:600">TRIAL {{ d.empresa.dias_trial_restantes }}d</span>
+          {% elif d.empresa.trial_expirado %}
+          <span style="font-size:.65rem;color:#EF4444;font-weight:600">TRIAL EXPIRADO</span>
+          {% endif %}
+          {# Form inline alterar plano #}
+          <form method="POST" action="/admin/empresa/{{ d.empresa.id }}/plano" style="margin-top:.35rem">
+            <select name="plano" style="background:#0D1117;border:1px solid #21262D;color:#8B949E;border-radius:5px;font-size:.7rem;padding:.15rem .3rem" onchange="this.form.submit()">
+              <option value="">Alterar plano…</option>
+              <option value="starter1" {% if d.empresa.plano_base in ('starter', 'starter1') %}selected{% endif %}>Starter</option>
+              <option value="profissional" {% if d.empresa.plano_base == 'profissional' %}selected{% endif %}>Profissional</option>
+              <option value="enterprise" {% if d.empresa.plano_base == 'enterprise' %}selected{% endif %}>Enterprise</option>
+            </select>
+          </form>
+        </td>
+        <td style="font-weight:600">{{ d.func_count }}<span style="color:var(--radar-muted);font-size:.75rem">/{{ d.plano_info.limite_func }}</span></td>
+        <td style="font-size:.85rem">{{ d.checkins_semana }}</td>
+        <td>
+          {% if d.score_medio > 0 %}
+          <span class="badge-risco badge-risco-{{ d.nivel }}">{{ d.score_medio }}</span>
+          {% else %}<span style="color:#1C2128">—</span>{% endif %}
+        </td>
+        <td style="font-size:.78rem;color:var(--radar-muted)">{{ d.empresa.criado_em.strftime('%d/%m/%Y') }}</td>
+        <td>
+          <div style="display:flex;flex-direction:column;gap:.3rem">
+            {# Toggle ativo/inativo #}
+            <a href="/admin/empresa/{{ d.empresa.id }}/toggle"
+               style="font-size:.72rem;padding:.2rem .5rem;border-radius:5px;text-decoration:none;font-weight:600;
+               {% if d.empresa.ativo %}background:rgba(239,68,68,.1);color:#EF4444;border:1px solid rgba(239,68,68,.3)
+               {% else %}background:rgba(16,185,129,.1);color:#10B981;border:1px solid rgba(16,185,129,.3){% endif %}">
+              {% if d.empresa.ativo %}Desativar{% else %}Reativar{% endif %}
+            </a>
+            {# Excluir #}
+            <button onclick="confirmarExclusao('{{ d.empresa.id }}','{{ d.empresa.nome }}')"
+                    style="font-size:.72rem;padding:.2rem .5rem;border-radius:5px;font-weight:600;cursor:pointer;background:rgba(239,68,68,.08);color:#EF4444;border:1px solid rgba(239,68,68,.2)">
+              Excluir
+            </button>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Modal confirmação excluir -->
+<div id="modal-excluir" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:#161B22;border:1px solid #EF4444;border-radius:14px;padding:2rem;max-width:380px;width:90%;text-align:center">
+    <i class="bi bi-exclamation-triangle-fill" style="font-size:2rem;color:#EF4444;display:block;margin-bottom:1rem"></i>
+    <h4 style="color:#EF4444;margin:0 0 .5rem">Excluir empresa</h4>
+    <p style="color:var(--radar-muted);font-size:.88rem;margin:0 0 1.5rem" id="modal-excluir-msg">Esta ação é irreversível.</p>
+    <form id="form-excluir" method="POST">
+      <div style="display:flex;gap:.75rem">
+        <button type="submit" style="flex:1;background:#EF4444;color:#fff;border:none;padding:.65rem;border-radius:8px;font-weight:700;cursor:pointer">
+          Excluir permanentemente
+        </button>
+        <button type="button" onclick="document.getElementById('modal-excluir').style.display='none'"
+                style="flex:1;background:var(--radar-bg);color:var(--radar-muted);border:1px solid var(--radar-border);padding:.65rem;border-radius:8px;cursor:pointer">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function confirmarExclusao(id, nome) {
+  document.getElementById('modal-excluir-msg').textContent =
+    'Todos os dados de "' + nome + '" serão removidos permanentemente. Não há desfazer.';
+  document.getElementById('form-excluir').action = '/admin/empresa/' + id + '/excluir';
+  document.getElementById('modal-excluir').style.display = 'flex';
+}
+</script>
+{% endblock %}

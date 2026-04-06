@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Novo Funcionário — BAI-EX{% endblock %}
+{% block sidebar %}
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo"><img src="/static/logo_baiex.png" alt="BAI-EX" style="height:26px;filter:invert(1);mix-blend-mode:screen"></div>
+    <div class="brand-sub">{{ session.empresa_nome[:28] }}</div>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="/empresa/dashboard"><i class="bi bi-speedometer2"></i>Dashboard</a>
+    <a href="/empresa/alertas"><i class="bi bi-bell"></i>Alertas</a>
+    <a href="/empresa/funcionarios" class="active"><i class="bi bi-people"></i>Funcionários</a>
+    <a href="/empresa/relatorio"><i class="bi bi-file-earmark-text"></i>Relatório NR-01</a>
+    <a href="/empresa/previsao"><i class="bi bi-graph-up-arrow"></i>Previsão IA</a>
+    <a href="/empresa/relatorio/ia"><i class="bi bi-file-earmark-richtext"></i>Relatório IA ✨</a>
+    <a href="/empresa/chat"><i class="bi bi-robot"></i>BAIA</a>
+    <a href="/empresa/conta"><i class="bi bi-person-gear"></i>Minha Conta</a>
+    <a href="/empresa/logout"><i class="bi bi-box-arrow-left"></i>Sair</a>
+  </nav>
+  <div class="sidebar-footer">BAI-EX © 2025</div>
+</aside>
+{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <h1 style="font-size:1.5rem;font-weight:700;color:#fff;margin:0">Novo Funcionário</h1>
+    <p style="color:var(--radar-muted);font-size:.82rem;margin:.2rem 0 0">Cadastre um novo colaborador</p>
+  </div>
+  <a href="/empresa/funcionarios" class="btn-outline-radar"><i class="bi bi-arrow-left"></i>Voltar</a>
+</div>
+<div class="card-radar" style="max-width:600px">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}{% for cat, msg in messages %}
+      <div class="alert-radar mb-3" style="background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:#f87171">{{ msg }}</div>
+    {% endfor %}{% endif %}
+  {% endwith %}
+  <form method="POST">
+    <div class="row g-3">
+      <div class="col-12"><label class="form-label-radar">Nome Completo</label>
+        <input type="text" name="nome" class="form-control form-control-radar" required></div>
+      <div class="col-md-6"><label class="form-label-radar">Email</label>
+        <input type="email" name="email" class="form-control form-control-radar" required></div>
+      <div class="col-md-6"><label class="form-label-radar">Senha Inicial</label>
+        <input type="text" name="senha" class="form-control form-control-radar" value="func123" required></div>
+      <div class="col-md-6"><label class="form-label-radar">Departamento</label>
+        <input type="text" name="departamento" class="form-control form-control-radar" placeholder="Ex: Engenharia"></div>
+      <div class="col-md-6"><label class="form-label-radar">Cargo</label>
+        <input type="text" name="cargo" class="form-control form-control-radar" placeholder="Ex: Analista"></div>
+      <div class="col-12 mt-2">
+        <!-- Envio de convite por e-mail -->
+        <div style="background:#0D1117;border:1px solid #21262D;border-radius:10px;padding:16px;margin-bottom:1rem">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;color:#C9D1D9;font-size:.9rem">
+            <input type="checkbox" name="enviar_convite" value="1" checked
+                   style="width:16px;height:16px;accent-color:#0891B2">
+            <span>📧 Enviar e-mail de convite com login e senha temporária</span>
+          </label>
+          <p style="color:#8B949E;font-size:.76rem;margin:6px 0 0 26px">
+            Requer MAIL_SERVER configurado no .env. Se não configurado, o funcionário é cadastrado normalmente.
+          </p>
+        </div>
+
+        <button type="submit" class="btn-primary-radar"><i class="bi bi-person-check"></i>Cadastrar Funcionário</button>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

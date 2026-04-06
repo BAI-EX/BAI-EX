@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Cadastro — BAI-EX{% endblock %}
+{% block sidebar %}{% endblock %}
+{% block body %}
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem 1rem;background:radial-gradient(ellipse 70% 50% at 50% 0,rgba(8,145,178,.3) 0%,transparent 70%),var(--radar-dark)">
+  <div style="width:100%;max-width:500px">
+    <div class="text-center mb-4">
+      <a href="/" style="text-decoration:none"><img src="/static/logo_baiex.png" alt="BAI-EX" style="height:44px;filter:invert(1);mix-blend-mode:screen"></a>
+      <p style="color:var(--radar-muted);font-size:.85rem;margin:.5rem 0 0">Cadastre sua empresa — 30 dias grátis</p>
+    </div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}{% for cat, msg in messages %}
+        <div class="alert-radar mb-3" style="{% if cat=='danger' %}background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:#f87171{% endif %}"><i class="bi bi-exclamation-circle me-2"></i>{{ msg }}</div>
+      {% endfor %}{% endif %}
+    {% endwith %}
+    <div class="card-radar">
+      <form method="POST">
+          <input type="hidden" name="plano" value="{{ plano }}">
+          {% if plano == 'profissional' %}
+          <div style="background:rgba(8,145,178,.15);border:1px solid #0891B2;border-radius:10px;padding:12px 16px;margin-bottom:1rem;font-size:.85rem;color:#22D3EE">
+            ⭐ Você escolheu o plano <strong>Profissional</strong> — R$15/func/mês · 16 a 200 funcionários. 14 dias grátis.
+          </div>
+          {% elif plano == 'enterprise' %}
+          <div style="background:rgba(217,119,6,.12);border:1px solid rgba(217,119,6,.4);border-radius:10px;padding:12px 16px;margin-bottom:1rem;font-size:.85rem;color:#D97706">
+            🏆 Você escolheu o plano <strong>Enterprise</strong> — recursos avançados sob consulta. Nossa equipe entrará em contato.
+          </div>
+          {% else %}
+          <div style="background:rgba(255,255,255,.04);border:1px solid #21262D;border-radius:10px;padding:12px 16px;margin-bottom:1rem;font-size:.85rem;color:#8B949E">
+            Plano <strong style="color:#C9D1D9">Starter</strong> — R$149/mês fixo · até 15 funcionários. 30 dias grátis.
+          </div>
+          {% endif %}
+        <div class="row g-3">
+          <div class="col-12"><label class="form-label-radar">Nome da Empresa</label>
+            <input type="text" name="nome" class="form-control form-control-radar" placeholder="Ex: Construtora ABC" required></div>
+          <div class="col-md-6"><label class="form-label-radar">CNPJ</label>
+            <input type="text" name="cnpj" class="form-control form-control-radar" placeholder="00.000.000/0001-00" required></div>
+          <div class="col-md-6"><label class="form-label-radar">Responsável</label>
+            <input type="text" name="responsavel" class="form-control form-control-radar" placeholder="Nome completo" required></div>
+          <div class="col-12"><label class="form-label-radar">Email de Acesso</label>
+            <input type="email" name="email" class="form-control form-control-radar" placeholder="rh@empresa.com.br" required></div>
+          <div class="col-12"><label class="form-label-radar">Senha</label>
+            <input type="password" name="senha" class="form-control form-control-radar" placeholder="Mínimo 6 caracteres" required></div>
+          <div class="col-12 mt-2">
+            <button type="submit" class="btn-primary-radar w-100 justify-content-center py-3"><i class="bi bi-building-add"></i>Criar Conta Grátis</button>
+          </div>
+        </div>
+      </form>
+      <hr style="border-color:var(--radar-border);margin:1.25rem 0">
+      <div class="text-center" style="font-size:.85rem;color:var(--radar-muted)">Já tem conta? <a href="/empresa/login" style="color:var(--radar-secondary)">Fazer login</a></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

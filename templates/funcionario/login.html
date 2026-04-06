@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Login Funcionário — BAI-EX{% endblock %}
+{% block sidebar %}{% endblock %}
+{% block body %}
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse 70% 50% at 50% 0,rgba(8,145,178,.3) 0%,transparent 70%),var(--radar-dark)">
+  <div style="width:100%;max-width:380px;padding:1rem">
+    <div class="text-center mb-4">
+      <a href="/" style="text-decoration:none"><img src="/static/logo_baiex.png" alt="BAI-EX" style="height:44px;filter:invert(1);mix-blend-mode:screen"></a>
+      <p style="color:var(--radar-muted);font-size:.85rem;margin:.5rem 0 0">Acesso do Funcionário</p>
+    </div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}{% for cat, msg in messages %}
+        <div class="alert-radar mb-3" style="background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:#f87171">{{ msg }}</div>
+      {% endfor %}{% endif %}
+    {% endwith %}
+    <div class="card-radar">
+      <form method="POST">
+        <div class="mb-3"><label class="form-label-radar">Email</label>
+          <input type="email" name="email" class="form-control form-control-radar" placeholder="seu@email.com" required></div>
+        <div class="mb-4"><label class="form-label-radar">Senha</label>
+          <input type="password" name="senha" class="form-control form-control-radar" placeholder="••••••••" required></div>
+        <button type="submit" class="btn-primary-radar w-100 justify-content-center"><i class="bi bi-box-arrow-in-right"></i>Entrar</button>
+      </form>
+    </div>
+    <div class="text-center mt-3"><a href="/empresa/login" style="font-size:.82rem;color:var(--radar-muted)"><i class="bi bi-building me-1"></i>Sou do RH</a></div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Alertas — BAI-EX{% endblock %}
+{% block sidebar %}
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo"><img src="/static/logo_baiex.png" alt="BAI-EX" style="height:26px;filter:invert(1);mix-blend-mode:screen"></div>
+    <div class="brand-sub">{{ session.empresa_nome[:28] }}</div>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="/empresa/dashboard"><i class="bi bi-speedometer2"></i>Dashboard</a>
+    <a href="/empresa/alertas" class="active"><i class="bi bi-bell"></i>Alertas</a>
+    <div class="nav-section">IA</div>
+    <a href="/empresa/previsao"><i class="bi bi-graph-up-arrow"></i>Previsão IA</a>
+    <a href="/empresa/relatorio/ia"><i class="bi bi-file-earmark-richtext"></i>Relatório IA ✨</a>
+    <a href="/empresa/chat"><i class="bi bi-robot"></i>BAIA</a>
+    <div class="nav-section">Gestão</div>
+    <a href="/empresa/funcionarios"><i class="bi bi-people"></i>Funcionários</a>
+    <a href="/empresa/relatorio"><i class="bi bi-file-earmark-text"></i>Relatório NR-01</a>
+    <a href="/empresa/conta"><i class="bi bi-person-gear"></i>Minha Conta</a>
+    <a href="/empresa/logout"><i class="bi bi-box-arrow-left"></i>Sair</a>
+  </nav>
+  <div class="sidebar-footer">BAI-EX © 2025</div>
+</aside>
+{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <h1 style="font-size:1.5rem;font-weight:700;color:#fff;margin:0">Central de Alertas</h1>
+    <p style="color:var(--radar-muted);font-size:.82rem;margin:.2rem 0 0">Funcionários que requerem atenção do RH</p>
+  </div>
+</div>
+
+{% if checkins_criticos %}
+<div class="card-radar mb-4">
+  <div class="card-title" style="color:#f87171"><i class="bi bi-exclamation-octagon-fill me-1"></i>🚨 Funcionários com Risco Alto ou Crítico</div>
+  <table class="table-radar">
+    <thead><tr><th>Funcionário</th><th>Departamento</th><th>Data</th><th>Score</th><th>Nível</th><th>Detalhe</th></tr></thead>
+    <tbody>
+      {% for ck in checkins_criticos %}
+      <tr>
+        <td style="font-weight:600;color:#fff">{{ ck.funcionario.nome }}</td>
+        <td style="font-size:.82rem">{{ ck.funcionario.departamento }}</td>
+        <td style="font-size:.82rem;color:var(--radar-muted)">{{ ck.data.strftime('%d/%m/%Y') }}</td>
+        <td><span style="font-weight:700;color:{% if ck.nivel_risco == 'critico' %}#22D3EE{% else %}#ef4444{% endif %}">{{ ck.score }}</span></td>
+        <td><span class="badge-risco badge-risco-{{ ck.nivel_risco }}">{{ risco_emoji(ck.nivel_risco) }} {{ ck.nivel_risco.title() }}</span></td>
+        <td style="font-size:.78rem;color:var(--radar-muted)">
+          Estresse: {{ ck.q1_estresse }}/5 · Esgotamento: {{ ck.q5_esgotamento }}/5 · Sono: {{ ck.q3_sono }}/5
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.25);border-radius:10px;padding:1rem;margin-bottom:1.5rem;color:#4ade80;font-size:.9rem">
+  <i class="bi bi-check-circle-fill me-2"></i>Nenhum funcionário com risco alto ou crítico esta semana. 
+</div>
+{% endif %}
+
+{% if nao_responderam %}
+<div class="card-radar">
+  <div class="card-title" style="color:#facc15"><i class="bi bi-clock me-1"></i>⚠️ Sem Resposta esta Semana (Semana {{ semana }})</div>
+  <p style="font-size:.85rem;color:var(--radar-muted);margin-bottom:1rem">Estes funcionários ainda não completaram o check-in. Considere um lembrete.</p>
+  <div class="row g-2">
+    {% for f in nao_responderam %}
+    <div class="col-md-4">
+      <div style="background:rgba(255,255,255,.03);border:1px solid var(--radar-border);border-radius:8px;padding:.75rem">
+        <div style="font-weight:600;color:#fff;font-size:.88rem">{{ f.nome }}</div>
+        <div style="font-size:.78rem;color:var(--radar-muted)">{{ f.departamento }} · {{ f.email }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<div class="card-radar mt-4" style="background:rgba(8,145,178,.08);border-color:rgba(8,145,178,.3)">
+  <div class="card-title" style="color:#67E8F9"><i class="bi bi-shield-check me-1"></i>Recomendações de Ação (NR-01)</div>
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div style="font-size:.85rem">
+        <div style="font-weight:600;color:#fff;margin-bottom:.35rem">🔴 Risco Crítico</div>
+        <div style="color:var(--radar-muted)">Encaminhar para avaliação com médico do trabalho ou psicólogo. Registrar a ação. Reduzir carga imediatamente.</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div style="font-size:.85rem">
+        <div style="font-weight:600;color:#fff;margin-bottom:.35rem">🟠 Risco Alto</div>
+        <div style="color:var(--radar-muted)">Conversa individual com gestor. Avaliar redistribuição de tarefas. Monitorar semana a semana.</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div style="font-size:.85rem">
+        <div style="font-weight:600;color:#fff;margin-bottom:.35rem">🟡 Risco Moderado</div>
+        <div style="color:var(--radar-muted)">Manter monitoramento. Identificar causas. Considerar ações de bem-estar preventivo.</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Logs de Auditoria — BAI-EX{% endblock %}
+{% block sidebar %}
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo"><img src="/static/logo_baiex.png" alt="BAI-EX" style="height:26px;filter:invert(1);mix-blend-mode:screen"></div>
+    <div class="brand-sub">Painel Administrativo</div>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="/admin/dashboard"><i class="bi bi-grid"></i>Visão Geral</a>
+    <a href="/admin/logs" class="active"><i class="bi bi-journal-text"></i>Logs de Auditoria</a>
+    <a href="/admin/backup"><i class="bi bi-download"></i>Backup JSON</a>
+    <a href="/admin/logout"><i class="bi bi-box-arrow-left"></i>Sair</a>
+  </nav>
+  <div class="sidebar-footer">BAI-EX © 2025</div>
+</aside>
+{% endblock %}
+
+{% block content %}
+<div class="topbar">
+  <div>
+    <h1 style="font-size:1.5rem;font-weight:700;color:#fff;margin:0">Logs de Auditoria</h1>
+    <p style="color:var(--radar-muted);font-size:.82rem;margin:.2rem 0 0">Rastreabilidade completa — exigida pela NR-01 por 20 anos</p>
+  </div>
+  <a href="/admin/backup" class="btn-primary-radar"><i class="bi bi-download"></i>Baixar Backup</a>
+</div>
+
+<!-- Filtro por ação -->
+<div class="card-radar mb-4">
+  <form method="GET" class="d-flex gap-2 align-items-center flex-wrap">
+    <select name="acao" class="form-control-radar" style="width:200px">
+      <option value="">Todas as ações</option>
+      {% for a in acoes_unicas %}
+      <option value="{{ a }}" {% if a == acao_filtro %}selected{% endif %}>{{ a }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn-primary-radar" style="padding:.5rem 1rem"><i class="bi bi-funnel"></i>Filtrar</button>
+    {% if acao_filtro %}<a href="/admin/logs" class="btn-outline-radar" style="padding:.5rem 1rem">Limpar</a>{% endif %}
+    <span style="color:var(--radar-muted);font-size:.82rem">{{ logs|length }} registros</span>
+  </form>
+</div>
+
+<div class="card-radar">
+  <table class="table-radar">
+    <thead>
+      <tr>
+        <th>Data/Hora</th>
+        <th>Ação</th>
+        <th>Tipo</th>
+        <th>Usuário ID</th>
+        <th>Empresa ID</th>
+        <th>Detalhe</th>
+        <th>IP</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in logs %}
+      <tr>
+        <td style="font-size:.78rem;color:var(--radar-muted);white-space:nowrap">{{ log.timestamp.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+        <td>
+          <span style="font-size:.78rem;font-weight:700;padding:.2rem .6rem;border-radius:8px;
+            {% if 'FALHA' in log.acao %}background:rgba(239,68,68,.15);color:#f87171
+            {% elif 'LOGIN' in log.acao %}background:rgba(16,185,129,.12);color:#34D399
+            {% elif 'CHECKIN' in log.acao %}background:rgba(8,145,178,.12);color:#22D3EE
+            {% elif 'BACKUP' in log.acao %}background:rgba(234,179,8,.12);color:#facc15
+            {% else %}background:rgba(255,255,255,.05);color:var(--radar-muted)
+            {% endif %}">{{ log.acao }}</span>
+        </td>
+        <td style="font-size:.8rem;color:var(--radar-muted)">{{ log.tipo_usuario or '—' }}</td>
+        <td style="font-size:.8rem">{{ log.usuario_id or '—' }}</td>
+        <td style="font-size:.8rem">{{ log.empresa_id or '—' }}</td>
+        <td style="font-size:.8rem;color:var(--radar-muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ log.detalhe }}">{{ log.detalhe or '—' }}</td>
+        <td style="font-size:.78rem;color:var(--radar-muted);font-family:monospace">{{ log.ip or '—' }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" style="text-align:center;color:var(--radar-muted);padding:2rem">Nenhum log encontrado.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="card-radar mt-3" style="background:rgba(8,145,178,.05);border-color:rgba(8,145,178,.2)">
+  <div style="font-size:.82rem;color:var(--radar-muted)">
+    <i class="bi bi-info-circle me-1" style="color:#22D3EE"></i>
+    <strong style="color:#F0F6FC">NR-01 exige rastreabilidade por 20 anos.</strong>
+    Estes logs registram logins, check-ins, geração de relatórios e backups.
+    Use o botão <strong style="color:#F0F6FC">Baixar Backup</strong> regularmente para manter cópias externas.
+  </div>
+</div>
+{% endblock %}

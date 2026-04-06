@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Meu Painel — BAI-EX{% endblock %}
+{% block sidebar %}
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo"><img src="/static/logo_baiex.png" alt="BAI-EX" style="height:26px;filter:invert(1);mix-blend-mode:screen"></div>
+    <div class="brand-sub">{{ funcionario.nome[:22] }}</div>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="/funcionario/painel" class="active"><i class="bi bi-house"></i>Meu Painel</a>
+    {% if not ja_respondeu %}
+    <a href="/funcionario/checkin" style="background:rgba(16,185,129,.1);border-left-color:var(--radar-accent);color:#fb923c"><i class="bi bi-clipboard-pulse"></i>Fazer Check-in ✨</a>
+    {% endif %}
+    <a href="/funcionario/logout"><i class="bi bi-box-arrow-left"></i>Sair</a>
+  </nav>
+  <div class="sidebar-footer">BAI-EX © 2025</div>
+</aside>
+{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <h1 style="font-size:1.5rem;font-weight:700;color:#fff;margin:0">Olá, {{ funcionario.nome.split()[0] }} 👋</h1>
+    <p style="color:var(--radar-muted);font-size:.82rem;margin:.2rem 0 0">{{ funcionario.departamento }} · {{ funcionario.cargo }}</p>
+  </div>
+  <div class="user-pill">
+    <div class="user-avatar">{{ funcionario.nome[0] }}</div>
+    Semana {{ semana }}
+  </div>
+</div>
+
+{% if not ja_respondeu %}
+<div style="background:linear-gradient(135deg,rgba(8,145,178,.1) 0%,rgba(34,211,238,.08) 100%);border:1px solid rgba(8,145,178,.25);border-radius:14px;padding:1.75rem;margin-bottom:1.5rem;text-align:center">
+  <div style="font-size:2.5rem;margin-bottom:.75rem">📋</div>
+  <h5 style="color:#fff;font-weight:700;margin-bottom:.5rem">Check-in da Semana {{ semana }} disponível!</h5>
+  <p style="color:#22D3EE;font-size:.9rem;margin-bottom:1.25rem">Responda 8 perguntas rápidas (menos de 1 min) para monitorar seu bem-estar.</p>
+  <a href="/funcionario/checkin" class="btn-primary-radar" style="background:var(--radar-primary);font-size:1rem;padding:.7rem 2rem"><i class="bi bi-play-circle"></i>Iniciar Check-in</a>
+</div>
+{% else %}
+<div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.25);border-radius:12px;padding:1.25rem;margin-bottom:1.5rem">
+  <i class="bi bi-check-circle-fill me-2" style="color:#4ade80"></i>
+  <span style="color:#4ade80;font-weight:600">Check-in desta semana concluído!</span>
+  <span style="color:var(--radar-muted);font-size:.85rem"> O próximo ficará disponível na semana seguinte.</span>
+</div>
+{% endif %}
+
+<div class="row g-3">
+  {% if ultimo %}
+  <div class="col-md-4">
+    <div class="card-radar text-center">
+      <div class="card-title">Último Score</div>
+      <div style="font-size:3rem;font-weight:800;color:#fff;line-height:1">{{ ultimo.score }}</div>
+      <div class="mt-2"><span class="badge-risco badge-risco-{{ ultimo.nivel_risco }}">{{ risco_emoji(ultimo.nivel_risco) }} {{ ultimo.nivel_risco.title() }}</span></div>
+      <div style="font-size:.78rem;color:var(--radar-muted);margin-top:.5rem">{{ ultimo.data.strftime('%d/%m/%Y') }}</div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="{{ 'col-md-8' if ultimo else 'col-12' }}">
+    <div class="card-radar">
+      <div class="card-title">Meu Histórico de Score</div>
+      <canvas id="histChart"></canvas>
+    </div>
+  </div>
+</div>
+
+{% if historico %}
+<div class="card-radar mt-3">
+  <div class="card-title">Últimos Check-ins</div>
+  <table class="table-radar">
+    <thead><tr><th>Semana</th><th>Data</th><th>Score</th><th>Risco</th></tr></thead>
+    <tbody>
+      {% for ck in historico %}
+      <tr>
+        <td style="font-size:.85rem">Semana {{ ck.semana }}/{{ ck.ano }}</td>
+        <td style="font-size:.82rem;color:var(--radar-muted)">{{ ck.data.strftime('%d/%m/%Y') }}</td>
+        <td>
+          <span style="font-weight:700">{{ ck.score }}</span>
+          <div class="score-bar mt-1" style="width:80px">
+            <div class="score-fill" style="width:{{ ck.score }}%;background:{% if ck.score < 30 %}#22c55e{% elif ck.score < 55 %}#eab308{% elif ck.score < 75 %}#ef4444{% else %}#22D3EE{% endif %}"></div>
+          </div>
+        </td>
+        <td><span class="badge-risco badge-risco-{{ ck.nivel_risco }}">{{ risco_emoji(ck.nivel_risco) }} {{ ck.nivel_risco.title() }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<div class="card-radar mt-3" style="background:rgba(8,145,178,.06)">
+  <div class="card-title" style="color:#67E8F9"><i class="bi bi-lightbulb me-1"></i>Dicas de Bem-Estar</div>
+  <div class="row g-3">
+    <div class="col-md-4" style="font-size:.85rem;color:var(--radar-muted)"><strong style="color:#fff">😴 Sono</strong><br>Tente dormir 7-8h por noite. O sono é o principal fator de recuperação do burnout.</div>
+    <div class="col-md-4" style="font-size:.85rem;color:var(--radar-muted)"><strong style="color:#fff">🚶 Movimento</strong><br>30 min de caminhada por dia reduzem o cortisol e melhoram o humor significativamente.</div>
+    <div class="col-md-4" style="font-size:.85rem;color:var(--radar-muted)"><strong style="color:#fff">💬 Fale</strong><br>Se sentir risco alto, procure o RH ou um profissional. Pedir ajuda é sinal de força.</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const hist = {{ historico_json | tojson }};
+const labels = hist.map(h => `Sem ${h.semana}`).reverse();
+const scores = hist.map(h => h.score).reverse();
+const ctx = document.getElementById('histChart').getContext('2d');
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels,
+    datasets: [{
+      label: 'Score de Risco',
+      data: scores,
+      backgroundColor: scores.map(s => s < 30 ? 'rgba(34,197,94,.6)' : s < 55 ? 'rgba(234,179,8,.6)' : s < 75 ? 'rgba(239,68,68,.6)' : 'rgba(34,211,238,.6)'),
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,.04)' }, ticks: { color: '#8B949E', font: { size: 11 } } },
+      y: { grid: { color: 'rgba(255,255,255,.04)' }, ticks: { color: '#8B949E', font: { size: 11 } }, min: 0, max: 100 }
+    }
+  }
+});
+</script>
+{% endblock %}

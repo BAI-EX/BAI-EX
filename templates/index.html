@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BAI-EX — Burnout AI Experience</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --p: #0891B2;
+      --acc: #10B981;
+      --dark: #0D1117;
+      --card: #161B22;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--dark); color: #F0F6FC; margin: 0; }
+    .hero {
+      background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(8,145,178,.5) 0%, transparent 70%),
+                  radial-gradient(ellipse 40% 40% at 80% 80%, rgba(16,185,129,.15) 0%, transparent 60%),
+                  var(--dark);
+      padding: 6rem 0 5rem;
+      text-align: center;
+    }
+    .badge-nr { background: rgba(16,185,129,.15); color: #fb923c; border: 1px solid rgba(16,185,129,.3); border-radius: 20px; padding: .35rem 1rem; font-size: .78rem; font-weight: 600; display: inline-block; margin-bottom: 1.25rem; }
+    .hero h1 { font-size: clamp(2.2rem,5vw,3.5rem); font-weight: 800; line-height: 1.15; color: #fff; margin-bottom: 1.25rem; }
+    .hero h1 span { color: var(--acc); }
+    .hero p { font-size: 1.15rem; color: #8B949E; max-width: 540px; margin: 0 auto 2rem; }
+    .btn-hero-p { background: var(--p); color: #fff; border: none; padding: .75rem 2rem; border-radius: 10px; font-weight: 700; font-size: 1rem; text-decoration: none; display: inline-flex; align-items: center; gap: .5rem; transition: all .2s; letter-spacing: .01em; }
+    .btn-hero-p:hover { background: #0E7490; color: #fff; transform: translateY(-2px); }
+    .btn-hero-o { background: transparent; color: #F0F6FC; border: 1px solid #21262D; padding: .75rem 1.75rem; border-radius: 10px; font-weight: 600; font-size: 1rem; text-decoration: none; display: inline-flex; align-items: center; gap: .5rem; transition: all .2s; }
+    .btn-hero-o:hover { border-color: var(--p); color: #67E8F9; }
+    .features { padding: 5rem 0; }
+    .feat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; margin-bottom: 1rem; }
+    .card-f { background: var(--card); border: 1px solid #21262D; border-radius: 14px; padding: 1.75rem; height: 100%; }
+    .card-f h5 { font-weight: 700; color: #fff; margin-bottom: .5rem; }
+    .card-f p { color: #8B949E; font-size: .9rem; margin: 0; }
+    .nr-banner {
+      background: linear-gradient(135deg, rgba(8,145,178,.12) 0%, rgba(16,185,129,.08) 100%);
+      border: 1px solid rgba(8,145,178,.4);
+      border-radius: 16px;
+      padding: 2.5rem;
+      margin: 3rem 0;
+    }
+    .price-card { background: var(--card); border: 1px solid #21262D; border-radius: 14px; padding: 2rem; text-align: center; }
+    .price-card.destaque { border-color: var(--p); background: linear-gradient(180deg, rgba(8,145,178,.1) 0%, var(--card) 100%); }
+    .price { font-size: 2.5rem; font-weight: 800; color: #fff; }
+    .price sup { font-size: 1rem; vertical-align: top; margin-top: .6rem; color: #8B949E; }
+    .price span { font-size: .85rem; color: #8B949E; }
+    .checklist li { color: #8B949E; font-size: .88rem; padding: .3rem 0; list-style: none; }
+    .checklist li::before { content: '✓ '; color: #22c55e; font-weight: 700; }
+    footer { border-top: 1px solid #21262D; padding: 2rem 0; text-align: center; color: #8B949E; font-size: .85rem; }
+    nav.topnav { background: rgba(13,17,23,.92); backdrop-filter: blur(12px); border-bottom: 1px solid #21262D; padding: .85rem 0; position: sticky; top: 0; z-index: 100; }
+    nav.topnav .brand { font-weight: 800; font-size: 1.15rem; color: #fff; text-decoration: none; }
+    nav.topnav .brand span { color: var(--acc); }
+  </style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="container d-flex justify-content-between align-items-center">
+    <a class="brand" href="/"><i class="bi bi-activity me-1"></i>BAI-<span>EX</span></a>
+    <div class="d-flex gap-2">
+      <a href="/funcionario/login" class="btn btn-sm" style="color:#8B949E;border:1px solid #21262D;border-radius:8px;padding:.4rem .9rem">Sou Funcionário</a>
+      <a href="/empresa/login" class="btn btn-sm" style="background:var(--p);color:#fff;border-radius:8px;padding:.4rem .9rem">Acesso RH</a>
+    </div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="container">
+    <div class="badge-nr"><i class="bi bi-shield-check me-1"></i>Conformidade NR-01 — Obrigatória em 2025</div>
+    <h1>Detecte burnout.<br>Comprove conformidade.<br><span>Evite processos.</span></h1>
+    <p>Plataforma B2B de monitoramento de risco psicossocial para empresas que precisam se adequar à nova NR-01.</p>
+    <div class="d-flex justify-content-center gap-3 flex-wrap">
+      <a href="/#planos" class="btn-hero-p"><i class="bi bi-building-add"></i>Começar Grátis</a>
+      <a href="/empresa/login" class="btn-hero-o"><i class="bi bi-box-arrow-in-right"></i>Já tenho conta</a>
+    </div>
+    <p class="mt-4" style="font-size:.8rem;color:#1C2128">Sem cartão de crédito · Teste grátis 30 dias · Cancelamento a qualquer momento</p>
+  </div>
+</section>
+
+<section class="features">
+  <div class="container">
+
+    <div class="nr-banner">
+      <div class="row align-items-center g-4">
+        <div class="col-md-8">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-exclamation-triangle-fill text-warning fs-5"></i>
+            <span style="font-weight:700;color:#fff;font-size:1.05rem">A NR-01 agora exige gestão de riscos psicossociais</span>
+          </div>
+          <p style="color:#8B949E;margin:0;font-size:.93rem">A atualização da Norma Regulamentadora nº 1 passou a exigir que empresas monitorem o ambiente psicossocial, documentem ações preventivas e comprovem conformidade em auditorias trabalhistas. <strong style="color:#f8c96b">Sua empresa está pronta?</strong></p>
+        </div>
+        <div class="col-md-4 text-center">
+          <a href="/#planos" class="btn-hero-p"><i class="bi bi-calculator"></i>Calcular meu plano</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4 mt-2">
+      <div class="col-md-4">
+        <div class="card-f">
+          <div class="feat-icon" style="background:rgba(8,145,178,.2)"><i class="bi bi-clipboard-pulse" style="color:#22D3EE"></i></div>
+          <h5>Check-in Semanal</h5>
+          <p>Questionário de 8 perguntas para funcionários. Leva menos de 1 minuto. Detecta padrões de burnout antes que virem problema.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card-f">
+          <div class="feat-icon" style="background:rgba(16,185,129,.15)"><i class="bi bi-graph-up-arrow" style="color:#fb923c"></i></div>
+          <h5>Dashboard de Risco</h5>
+          <p>Score 0-100 por funcionário, evolução semanal, alertas automáticos e distribuição de risco por equipe e departamento.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card-f">
+          <div class="feat-icon" style="background:rgba(34,197,94,.15)"><i class="bi bi-file-earmark-check" style="color:#4ade80"></i></div>
+          <h5>Relatórios de Compliance</h5>
+          <p>Relatórios prontos para auditoria da NR-01. Demonstre para fiscalização que a empresa monitora e age preventivamente.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card-f">
+          <div class="feat-icon" style="background:rgba(239,68,68,.15)"><i class="bi bi-bell-fill" style="color:#f87171"></i></div>
+          <h5>Alertas Inteligentes</h5>
+          <p>Notificações automáticas quando funcionários atingem risco alto ou crítico. Aja antes que o problema escale.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card-f">
+          <div class="feat-icon" style="background:rgba(6,182,212,.15)"><i class="bi bi-incognito" style="color:#22d3ee"></i></div>
+          <h5>Privacidade Garantida</h5>
+          <p>Funcionários respondem com segurança. O RH vê dados agregados. Conformidade total com a LGPD.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card-f">
+          <div class="feat-icon" style="background:rgba(234,179,8,.15)"><i class="bi bi-people-fill" style="color:#facc15"></i></div>
+          <h5>Gestão de Equipes</h5>
+          <p>Cadastre departamentos, acompanhe taxa de resposta, identifique setores críticos e priorize ações preventivas.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRICING -->
+    <!-- PRICING -->
+    <div id="planos" style="text-align:center;margin:3rem 0 1.5rem">
+      <h2 style="font-size:1.75rem;font-weight:800;color:#fff;margin-bottom:.5rem">Planos simples, sem surpresa</h2>
+      <p style="color:#8B949E;font-size:.93rem;margin-bottom:.75rem">
+        Starter: <strong style="color:#F0F6FC">30 dias grátis</strong> &nbsp;·&nbsp;
+        Profissional: <strong style="color:#F0F6FC">15 dias grátis</strong> &nbsp;·&nbsp;
+        Enterprise: <strong style="color:#D97706">sob consulta</strong>
+      </p>
+
+      <!-- CALCULADORA -->
+      <div style="background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.25);border-radius:14px;padding:1.5rem;margin-bottom:2.5rem;max-width:520px;margin-left:auto;margin-right:auto">
+        <p style="color:#22D3EE;font-weight:700;font-size:.9rem;margin:0 0 .5rem">🧮 Calculadora de plano</p>
+        <p style="color:#8B949E;font-size:.82rem;margin:0 0 1rem">Quantos funcionários tem sua empresa?</p>
+        <div style="display:flex;align-items:center;gap:.75rem;justify-content:center;flex-wrap:wrap">
+          <input type="number" id="calc-input" min="1" max="99999" placeholder="Ex: 45"
+                 style="width:110px;background:#0D1117;border:1px solid #0891B2;border-radius:8px;padding:.55rem .8rem;color:#F0F6FC;font-size:1rem;text-align:center;outline:none"
+                 oninput="calcularPlano(this.value)">
+          <span style="color:#8B949E;font-size:.85rem">funcionários</span>
+        </div>
+        <div id="calc-result" style="margin-top:1rem;display:none">
+          <div style="background:#0D1117;border-radius:10px;padding:1rem">
+            <div id="calc-plano-nome" style="color:#22D3EE;font-weight:700;font-size:1rem;margin-bottom:.25rem"></div>
+            <div id="calc-preco" style="color:#fff;font-weight:800;font-size:1.6rem;margin-bottom:.25rem"></div>
+            <div id="calc-desc" style="color:#8B949E;font-size:.78rem;margin-bottom:.75rem"></div>
+            <a id="calc-cta" href="#" style="display:inline-block;background:#0891B2;color:#fff;font-weight:700;font-size:.85rem;padding:.5rem 1.2rem;border-radius:8px;text-decoration:none">
+              Começar grátis →
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- BENCHMARK -->
+      <div style="background:rgba(8,145,178,.07);border:1px solid rgba(8,145,178,.2);border-radius:12px;padding:1rem 1.5rem;margin-bottom:2.5rem;font-size:.84rem;color:#8B949E;text-align:center">
+        💡 <strong style="color:#F0F6FC">Benchmark:</strong>
+        Plataformas de terapia corporativa (Zenklub, Vittude) cobram <strong style="color:#F0F6FC">R$22–80/vida/mês</strong>.
+        A BAI-EX entrega monitoramento preditivo + compliance NR-01 completo por uma fração desse valor — sem psicólogo na folha.
+      </div>
+
+      <!-- CARDS DE PREÇO — 3 planos -->
+      <div class="row g-4 justify-content-center mb-5 align-items-stretch">
+
+        <!-- STARTER -->
+        <div class="col-lg-4 col-md-6">
+          <div style="background:#161B22;border:1px solid #21262D;border-radius:16px;padding:2rem;height:100%;display:flex;flex-direction:column">
+            <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#8B949E;margin-bottom:.75rem">Starter</div>
+            <div style="font-size:2.75rem;font-weight:800;color:#fff;line-height:1;margin-bottom:.2rem">R$149</div>
+            <p style="color:#8B949E;font-size:.78rem;margin:0 0 .25rem">/mês fixo · 30 dias grátis</p>
+            <p style="color:#10B981;font-size:.78rem;margin:0 0 1.25rem;font-weight:600">Até 15 funcionários</p>
+            <ul style="list-style:none;padding:0;margin:0 0 1.5rem;flex:1;text-align:left">
+              <li style="color:#C9D1D9;font-size:.85rem;padding:.35rem 0;border-bottom:1px solid rgba(255,255,255,.04)">✓ Check-in semanal (8 dimensões)</li>
+              <li style="color:#C9D1D9;font-size:.85rem;padding:.35rem 0;border-bottom:1px solid rgba(255,255,255,.04)">✓ Score 0–100 individual</li>
+              <li style="color:#C9D1D9;font-size:.85rem;padding:.35rem 0;border-bottom:1px solid rgba(255,255,255,.04)">✓ Dashboard RH em tempo real</li>
+              <li style="color:#C9D1D9;font-size:.85rem;padding:.35rem 0;border-bottom:1px solid rgba(255,255,255,.04)">✓ Alertas automáticos</li>
+              <li style="color:#C9D1D9;font-size:.85rem;padding:.35rem 0">✓ Relatório básico NR-01</li>
+            </ul>
+            <p style="color:#8B949E;font-size:.75rem;margin:0 0 1rem;font-style:italic">Ideal para pequenas empresas iniciando</p>
+            <a href="/empresa/cadastro?plano=starter1"
+               style="display:block;text-align:center;padding:.7rem;border:1px solid #21262D;border-radius:10px;color:#F0F6FC;font-weight:600;font-size:.88rem;text-decoration:none;transition:all .2s"
+               onmouseover="this.style.borderColor='#0891B2';this.style.color='#22D3EE'"
+               onmouseout="this.style.borderColor='#21262D';this.style.color='#F0F6FC'">
+              Grátis 30 dias →
+            </a>
+          </div>
+        </div>
+
+        <!-- PROFISSIONAL (destaque) -->
+        <div class="col-lg-4 col-md-6" style="position:relative">
+          <div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:#0891B2;color:#fff;font-size:.7rem;font-weight:700;border-radius:20px;padding:.25rem 1rem;white-space:nowrap;z-index:1">
+            ⭐ MAIS ESCOLHIDO
+          </div>
+          <div style="background:linear-gradient(145deg,rgba(8,145,178,.12),#161B22);border:1.5px solid #0891B2;border-radius:16px;padding:2rem;height:100%;display:flex;flex-direction:column">
+            <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#22D3EE;margin-bottom:.75rem">Profissional</div>
+            <div style="font-size:2.75rem;font-weight:800;color:#fff;line-height:1;margin-bottom:.2rem">R$15<span style="font-size:1rem;color:#8B949E">/func</span></div>
+            <p style="color:#8B949E;font-size:.78rem;margin:0 0 .25rem">/mês · 15 dias grátis</p>
+            <p style="color:#10B981;font-size:.78rem;margin:0 0 1.25rem;font-weight:600">16 a 200 funcionários</p>
+            <ul style="list-style:none;padding:0;margin:0 0 1.5rem;flex:1;text-align:left">
+              <li style="color:#C9D1D9;font-size:.85rem;padding:.35rem 0;border-bottom:1px solid rgba(255,255,255,.04)">✓ Tudo do Starter</li>
+              <li style="color:#22D3EE;font-size:.85rem;padding:.35rem 0;border-bottom:1px solid rgba(255,255,255,.04)">✓ Frequência configurável</li>
+              <li style="color:#22D3EE;font-size:.85rem;padding:.35rem 0;border-bottom:1px solid rgba(255,255,255,.04)">✓ Relatório NR-01 com IA</li>
+              <li style="color:#22D3EE;font-size:.85rem;padding:.35rem 0;border-bottom:1px solid rgba(255,255,255,.04)">✓ Previsão preditiva (IA)</li>
+              <li style="color:#22D3EE;font-size:.85rem;padding:.35rem 0">✓ BAIA — Chat IA para RH</li>
+            </ul>
+            <p style="color:#8B949E;font-size:.75rem;margin:0 0 1rem;font-style:italic">Ideal para empresas em crescimento</p>
+            <a href="/empresa/cadastro?plano=profissional"
+               style="display:block;text-align:center;padding:.75rem;background:#0891B2;border-radius:10px;color:#fff;font-weight:700;font-size:.9rem;text-decoration:none;transition:all .2s"
+               onmouseover="this.style.background='#0E7490'" onmouseout="this.style.background='#0891B2'">
+              Grátis 15 dias →
+            </a>
+          </div>
+        </div>
+
+        <!-- ENTERPRISE -->
+        <div class="col-lg-4 col-md-6">
+          <div style="background:#161B22;border:1px solid #21262D;border-radius:16px;padding:2rem;height:100%;display:flex;flex-direction:column">
+            <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#D97706;margin-bottom:.75rem">Enterprise</div>
+            <div style="font-size:2rem;font-weight:800;color:#fff;line-height:1.1;margin-bottom:.2rem">Sob consulta</div>
+            <p style="color:#8B949E;font-size:.78rem;margin:0 0 .25rem">&nbsp;</p>
+            <p style="color:#D97706;font-size:.78rem;margin:0 0 1.25rem;font-weight:600">Para qualquer tamanho de empresa</p>
+            <ul style="list-style:none;padding:0;margin:0 0 1.5rem;flex:1;text-align:left">
+              <li style="color:#C9D1D9;font-size:.85rem;padding:.35rem 0;border-bottom:1px solid rgba(255,255,255,.04)">✓ Tudo do Profissional</li>
+              <li style="color:#D97706;font-size:.85rem;padding:.35rem 0;border-bottom:1px solid rgba(255,255,255,.04)">✓ Benchmark por setor</li>
+              <li style="color:#D97706;font-size:.85rem;padding:.35rem 0;border-bottom:1px solid rgba(255,255,255,.04)">✓ Multi-unidades / filiais</li>
+              <li style="color:#D97706;font-size:.85rem;padding:.35rem 0;border-bottom:1px solid rgba(255,255,255,.04)">✓ API para sistemas de RH</li>
+              <li style="color:#D97706;font-size:.85rem;padding:.35rem 0;border-bottom:1px solid rgba(255,255,255,.04)">✓ Personalização da IA</li>
+              <li style="color:#D97706;font-size:.85rem;padding:.35rem 0">✓ Gerente de conta dedicado</li>
+            </ul>
+            <p style="color:#8B949E;font-size:.75rem;margin:0 0 1rem;font-style:italic">Para empresas que precisam de recursos avançados</p>
+            <a href="https://wa.me/5574988099047?text=Tenho+interesse+no+plano+Enterprise+da+BAI-EX.+Pode+me+ajudar%3F"
+               target="_blank" rel="noopener"
+               style="display:block;text-align:center;padding:.7rem;border:1px solid #21262D;border-radius:10px;color:#F0F6FC;font-weight:600;font-size:.88rem;text-decoration:none;transition:all .2s"
+               onmouseover="this.style.borderColor='#D97706';this.style.color='#D97706'"
+               onmouseout="this.style.borderColor='#21262D';this.style.color='#F0F6FC'">
+              💬 Falar com consultor →
+            </a>
+          </div>
+        </div>
+
+      </div><!-- /row planos -->
+    </div>
+
+    <script>
+    function calcularPlano(n) {
+      n = parseInt(n);
+      if (!n || n < 1) { document.getElementById("calc-result").style.display="none"; return; }
+      fetch("/api/calculadora?funcionarios=" + n)
+        .then(r => r.json())
+        .then(d => {
+          document.getElementById("calc-plano-nome").textContent = d.nome;
+          var precoText = d.preco_display;
+          if (d.preco_display !== 'Sob consulta') precoText += "/mês";
+          document.getElementById("calc-preco").textContent = precoText;
+          var trialText = d.trial_dias > 0 ? d.descricao + " · " + d.trial_dias + " dias grátis" : d.descricao;
+          document.getElementById("calc-desc").textContent = trialText;
+          var cta = document.getElementById("calc-cta");
+          if (d.plano === "enterprise") {
+            cta.href = "https://wa.me/5574988099047?text=Tenho+interesse+no+Enterprise+BAI-EX";
+            cta.textContent = "Falar com consultor →";
+          } else {
+            cta.href = "/empresa/cadastro?plano=" + d.plano;
+            cta.textContent = "Começar grátis " + d.trial_dias + " dias →";
+          }
+          document.getElementById("calc-result").style.display = "block";
+        });
+    }
+    </script>
+
+  </div><!-- /container -->
+</section>
+</section>
+
+<footer style="border-top:1px solid #21262D;padding:2rem 0;text-align:center;color:#8B949E;font-size:.85rem">
+  <div class="container">
+    <div class="mb-2"><a href="/"><img src="/static/logo_baiex.png" alt="BAI-EX" style="height:24px;filter:invert(1);mix-blend-mode:screen"></a></div>
+    <p class="mb-1">Burnout AI Experience · Compliance NR-01 · Petrolina-PE / Juazeiro-BA</p>
+    <p>© 2025 BAI-EX. Todos os direitos reservados.</p>
+    <p style="margin-top:.5rem">
+      <a href="/privacidade" style="color:#8B949E;font-size:.8rem;text-decoration:none;margin:0 .5rem">Política de Privacidade</a>
+      <span style="color:#21262D">·</span>
+      <a href="/termos" style="color:#8B949E;font-size:.8rem;text-decoration:none;margin:0 .5rem">Termos de Uso</a>
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>

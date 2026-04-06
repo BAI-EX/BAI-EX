@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Resultado Check-in — BAI-EX{% endblock %}
+{% block sidebar %}{% endblock %}
+{% block body %}
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse 80% 50% at 50% 0,rgba(8,145,178,.25) 0%,transparent 70%),var(--radar-dark);padding:2rem 1rem">
+  <div style="max-width:500px;width:100%;text-align:center">
+    <div class="text-center mb-2"><img src="/static/logo_baiex.png" alt="BAI-EX" style="height:44px;filter:invert(1);mix-blend-mode:screen"></div>
+
+    <div class="card-radar" style="padding:2.5rem">
+      {% if ck.nivel_risco == 'baixo' %}
+        <div style="font-size:4rem;margin-bottom:1rem">🟢</div>
+        <h2 style="color:#4ade80;font-weight:800;margin-bottom:.5rem">Ótimo! Você está bem.</h2>
+        <p style="color:var(--radar-muted)">Seu nível de risco está baixo. Continue cuidando de si mesmo e mantendo esses hábitos saudáveis.</p>
+      {% elif ck.nivel_risco == 'moderado' %}
+        <div style="font-size:4rem;margin-bottom:1rem">🟡</div>
+        <h2 style="color:#facc15;font-weight:800;margin-bottom:.5rem">Risco Moderado</h2>
+        <p style="color:var(--radar-muted)">Alguns sinais de alerta foram detectados. Preste atenção ao seu descanso, sono e pausas durante o trabalho.</p>
+      {% elif ck.nivel_risco == 'alto' %}
+        <div style="font-size:4rem;margin-bottom:1rem">🔴</div>
+        <h2 style="color:#f87171;font-weight:800;margin-bottom:.5rem">Risco Alto</h2>
+        <p style="color:var(--radar-muted)">Você está apresentando sinais significativos de esgotamento. É importante conversar com alguém de confiança. O RH foi notificado.</p>
+      {% else %}
+        <div style="font-size:4rem;margin-bottom:1rem">⚠️</div>
+        <h2 style="color:#22D3EE;font-weight:800;margin-bottom:.5rem">Risco Crítico</h2>
+        <p style="color:var(--radar-muted)">Seus indicadores estão em nível crítico. Por favor, procure apoio profissional. O RH foi notificado para oferecer suporte imediato.</p>
+      {% endif %}
+
+      <div style="background:rgba(255,255,255,.04);border:1px solid var(--radar-border);border-radius:12px;padding:1.25rem;margin:1.5rem 0">
+        <div style="font-size:3rem;font-weight:800;color:#fff;line-height:1">{{ ck.score }}</div>
+        <div style="color:var(--radar-muted);font-size:.82rem;margin-top:.25rem">Score de risco (0–100)</div>
+        <div class="score-bar mt-3">
+          <div class="score-fill" style="width:{{ ck.score }}%;background:{% if ck.score < 30 %}linear-gradient(90deg,#22c55e,#4ade80){% elif ck.score < 55 %}linear-gradient(90deg,#eab308,#facc15){% elif ck.score < 75 %}linear-gradient(90deg,#ef4444,#f87171){% else %}linear-gradient(90deg,#0891B2,#22D3EE){% endif %}"></div>
+        </div>
+        <div class="d-flex justify-content-between mt-1" style="font-size:.7rem;color:#1C2128">
+          <span>0 — Sem risco</span><span>100 — Risco crítico</span>
+        </div>
+      </div>
+
+      <div style="background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.2);border-radius:10px;padding:1rem;margin-bottom:1.5rem;text-align:left;font-size:.85rem">
+        <div style="font-weight:600;color:#67E8F9;margin-bottom:.5rem">📊 Detalhes desta semana</div>
+        <div style="color:var(--radar-muted)">
+          As dimensões abaixo mostram <em>quão bem</em> você está em cada área (5 = ótimo, 1 = crítico):
+        </div>
+        <div class="row g-2 mt-1" style="font-size:.82rem">
+          {% set dims = [
+            ('😰 Estresse',      6 - ck.q1_estresse,   'Baixo é melhor'),
+            ('😤 Sobrecarga',    6 - ck.q2_sobrecarga,  'Leve é melhor'),
+            ('😴 Sono',          6 - ck.q3_sono,        'Excelente é melhor'),
+            ('🔥 Motivação',     6 - ck.q4_motivacao,   'Alta é melhor'),
+            ('😮‍💨 Esgotamento', 6 - ck.q5_esgotamento, 'Nenhum é melhor'),
+            ('🤝 Relações',      6 - ck.q6_relacoes,    'Excelentes é melhor'),
+            ('🎯 Autonomia',     6 - ck.q7_autonomia,   'Total é melhor'),
+            ('⭐ Reconhecimento',6 - ck.q8_reconhecimento,'Alto é melhor'),
+          ] %}
+          {% for nome, val, dica in dims %}
+          <div class="col-6">
+            <div style="background:rgba(255,255,255,.04);border:1px solid var(--radar-border);border-radius:8px;padding:.6rem .75rem">
+              <div style="margin-bottom:.35rem">{{ nome }}</div>
+              <div class="d-flex align-items-center gap-2">
+                {% for i in range(1, 6) %}
+                  <div style="width:18px;height:18px;border-radius:4px;font-size:.7rem;display:flex;align-items:center;justify-content:center;font-weight:700;
+                    {% if i <= val %}background:{% if val >= 4 %}rgba(34,197,94,.3);color:#4ade80{% elif val == 3 %}rgba(234,179,8,.3);color:#facc15{% else %}rgba(239,68,68,.3);color:#f87171{% endif %}
+                    {% else %}background:rgba(255,255,255,.05);color:#1C2128{% endif %}">{{ i }}</div>
+                {% endfor %}
+                <span style="color:#fff;font-weight:700;margin-left:2px">{{ val }}/5</span>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <a href="/funcionario/resultado/{{ ck.id }}/ia" class="btn-primary-radar w-100 justify-content-center mb-2" style="background:linear-gradient(135deg,#0891B2,#10B981)"><i class="bi bi-stars"></i>Ver Recomendações da IA</a>
+      <a href="/funcionario/painel" class="btn-outline-radar w-100 justify-content-center" style="font-size:.85rem"><i class="bi bi-house"></i>Voltar ao Painel</a>
+    </div>
+
+    <p style="font-size:.76rem;color:#1C2128;margin-top:1rem">Suas respostas são confidenciais. O RH recebe apenas dados agregados.</p>
+  </div>
+</div>
+{% endblock %}

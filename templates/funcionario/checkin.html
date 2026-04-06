@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Check-in Semanal — BAI-EX{% endblock %}
+{% block sidebar %}{% endblock %}
+{% block body %}
+<div style="min-height:100vh;background:radial-gradient(ellipse 80% 50% at 50% 0,rgba(8,145,178,.25) 0%,transparent 70%),var(--radar-dark);padding:2rem 1rem">
+  <div style="max-width:620px;margin:0 auto">
+    <div class="text-center mb-4">
+      <a href="/funcionario/painel" style="text-decoration:none"><div class="text-center mb-2"><img src="/static/logo_baiex.png" alt="BAI-EX" style="height:44px;filter:invert(1);mix-blend-mode:screen"></div></a>
+      <h2 style="color:#fff;font-weight:700;margin:1rem 0 .25rem;font-size:1.5rem">Check-in Semanal</h2>
+      <p style="color:var(--radar-muted);font-size:.88rem">{{ funcionario.nome }} · Responda com honestidade, seus dados são protegidos.</p>
+    </div>
+
+    <div style="background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.2);border-radius:10px;padding:.75rem 1rem;margin-bottom:1.5rem;font-size:.85rem;color:#22D3EE;text-align:center">
+      <i class="bi bi-clock me-1"></i>Menos de 1 minuto · <i class="bi bi-incognito me-1 ms-2"></i>Privado e seguro
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}{% for cat, msg in messages %}
+        <div class="alert-radar mb-3" style="background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:#f87171">{{ msg }}</div>
+      {% endfor %}{% endif %}
+    {% endwith %}
+
+    <form method="POST" id="checkinForm">
+      {% set perguntas = [
+        ('q1', '😰 Estresse', 'Como está seu nível de estresse esta semana?', ['Muito baixo', 'Baixo', 'Moderado', 'Alto', 'Muito alto']),
+        ('q2', '😤 Sobrecarga', 'Você se sente sobrecarregado com suas tarefas?', ['Não me sinto', 'Raramente', 'Às vezes', 'Frequentemente', 'Sempre']),
+        ('q3', '😴 Sono', 'Como está a qualidade do seu sono?', ['Excelente', 'Boa', 'Regular', 'Ruim', 'Péssima']),
+        ('q4', '🔥 Motivação', 'Sente motivação para trabalhar?', ['Muito motivado', 'Motivado', 'Neutro', 'Desmotivado', 'Sem motivação']),
+        ('q5', '😮‍💨 Esgotamento', 'Sente-se emocionalmente esgotado?', ['Nada', 'Levemente', 'Moderadamente', 'Bastante', 'Completamente']),
+        ('q6', '🤝 Relações', 'Como estão suas relações no trabalho?', ['Excelentes', 'Boas', 'Normais', 'Tensas', 'Muito ruins']),
+        ('q7', '🎯 Autonomia', 'Sente controle sobre suas atividades?', ['Total controle', 'Bom controle', 'Moderado', 'Pouco', 'Nenhum']),
+        ('q8', '⭐ Reconhecimento', 'Sente-se reconhecido pelo seu trabalho?', ['Muito reconhecido', 'Reconhecido', 'Às vezes', 'Pouco', 'Não reconhecido']),
+      ] %}
+
+      {% for name, titulo, pergunta, opcoes in perguntas %}
+      <div class="card-radar mb-3" id="card_{{ loop.index }}" style="border-color:transparent;transition:border-color .2s">
+        <div style="font-size:.75rem;font-weight:700;color:var(--radar-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem">Pergunta {{ loop.index }} de 8</div>
+        <div style="font-weight:600;color:#fff;font-size:1rem;margin-bottom:1rem">{{ titulo }} — {{ pergunta }}</div>
+        <div class="d-flex gap-2 flex-wrap" role="group">
+          {% for i, opcao in enumerate(opcoes, 1) %}
+          <label class="radio-opt" style="cursor:pointer;flex:1;min-width:80px">
+            <input type="radio" name="{{ name }}" value="{{ i }}" style="display:none" required onchange="markCard({{ loop.index }})">
+            <div class="opt-btn" style="text-align:center;padding:.6rem .4rem;border:1.5px solid var(--radar-border);border-radius:8px;font-size:.78rem;font-weight:500;color:var(--radar-muted);transition:all .2s;line-height:1.2">
+              <div style="font-size:1.1rem;margin-bottom:.25rem">{{ i }}</div>
+              {{ opcao }}
+            </div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+
+      <button type="submit" class="btn-primary-radar w-100 justify-content-center mt-2" style="padding:.85rem;font-size:1rem">
+        <i class="bi bi-send-check"></i>Enviar Check-in
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+// Estilizar rádios selecionados
+document.querySelectorAll('input[type=radio]').forEach(radio => {
+  radio.addEventListener('change', function() {
+    const name = this.name;
+    document.querySelectorAll(`input[name="${name}"]`).forEach(r => {
+      r.parentElement.querySelector('.opt-btn').style.cssText = 'text-align:center;padding:.6rem .4rem;border:1.5px solid var(--radar-border);border-radius:8px;font-size:.78rem;font-weight:500;color:var(--radar-muted);transition:all .2s;line-height:1.2;background:transparent';
+    });
+    this.parentElement.querySelector('.opt-btn').style.cssText = 'text-align:center;padding:.6rem .4rem;border:1.5px solid var(--radar-primary);border-radius:8px;font-size:.78rem;font-weight:600;color:#fff;transition:all .2s;line-height:1.2;background:rgba(8,145,178,.2)';
+  });
+});
+
+function markCard(idx) {
+  const card = document.getElementById('card_' + idx);
+  if (card) card.style.borderColor = 'rgba(8,145,178,.4)';
+}
+
+// Barra de progresso
+document.querySelectorAll('input[type=radio]').forEach(r => {
+  r.addEventListener('change', () => {
+    const answered = new Set(Array.from(document.querySelectorAll('input[type=radio]:checked')).map(r => r.name)).size;
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Funcionários — BAI-EX{% endblock %}
+{% block sidebar %}
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo"><img src="/static/logo_baiex.png" alt="BAI-EX" style="height:26px;filter:invert(1);mix-blend-mode:screen"></div>
+    <div class="brand-sub">{{ session.empresa_nome[:28] }}</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Principal</div>
+    <a href="/empresa/dashboard"><i class="bi bi-speedometer2"></i>Dashboard</a>
+    <a href="/empresa/alertas"><i class="bi bi-bell"></i>Alertas</a>
+    <div class="nav-section">Inteligência Artificial</div>
+    <a href="/empresa/previsao"><i class="bi bi-graph-up-arrow"></i>Previsão IA</a>
+    <a href="/empresa/relatorio/ia"><i class="bi bi-file-earmark-richtext"></i>Relatório IA ✨</a>
+    <a href="/empresa/chat"><i class="bi bi-robot"></i>BAIA — Chat IA</a>
+    <div class="nav-section">Gestão</div>
+    <a href="/empresa/funcionarios" class="active"><i class="bi bi-people"></i>Funcionários</a>
+    <a href="/empresa/relatorio"><i class="bi bi-file-earmark-text"></i>Relatório NR-01</a>
+    <div class="nav-section">Conta</div>
+    <a href="/empresa/conta"><i class="bi bi-person-gear"></i>Minha Conta</a>
+    <a href="/empresa/logout"><i class="bi bi-box-arrow-left"></i>Sair</a>
+  </nav>
+  <div class="sidebar-footer">BAI-EX © 2025</div>
+</aside>
+{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <h1 style="font-size:1.5rem;font-weight:700;color:#fff;margin:0">Funcionários</h1>
+    <p style="color:var(--radar-muted);font-size:.82rem;margin:.2rem 0 0">Gerencie os colaboradores da empresa</p>
+  </div>
+  <a href="/empresa/funcionarios/novo" class="btn-primary-radar"><i class="bi bi-person-plus"></i>Novo Funcionário</a>
+</div>
+<div class="card-radar">
+  <table class="table-radar">
+    <thead><tr><th>Nome</th><th>Email</th><th>Departamento</th><th>Cargo</th><th>Check-in esta semana</th><th>Último Score</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+      {% for item in func_data %}
+      <tr>
+        <td><div style="font-weight:600;color:#fff">{{ item.f.nome }}</div></td>
+        <td style="font-size:.82rem;color:var(--radar-muted)">{{ item.f.email }}</td>
+        <td style="font-size:.82rem">{{ item.f.departamento }}</td>
+        <td style="font-size:.82rem">{{ item.f.cargo }}</td>
+        <td>
+          {% if item.esta_semana %}<span style="color:#4ade80;font-size:.82rem"><i class="bi bi-check-circle-fill me-1"></i>Respondeu</span>
+          {% else %}<span style="color:#f87171;font-size:.82rem"><i class="bi bi-x-circle me-1"></i>Pendente</span>{% endif %}
+        </td>
+        <td>
+          {% if item.ultimo %}
+          <span class="badge-risco badge-risco-{{ item.ultimo.nivel_risco }}">{{ item.ultimo.score }}</span>
+          {% else %}<span style="color:#1C2128;font-size:.82rem">—</span>{% endif %}
+        </td>
+        <td>
+          {% if item.f.ativo %}<span style="color:#4ade80;font-size:.8rem">● Ativo</span>
+          {% else %}<span style="color:#1C2128;font-size:.8rem">● Inativo</span>{% endif %}
+        </td>
+        <td>
+          <a href="/empresa/funcionarios/{{ item.f.id }}/toggle" class="btn-outline-radar" style="font-size:.78rem;padding:.3rem .7rem">
+            {% if item.f.ativo %}Desativar{% else %}Ativar{% endif %}
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

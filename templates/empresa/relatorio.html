@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Relatório NR-01 — BAI-EX{% endblock %}
+{% block sidebar %}
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo"><img src="/static/logo_baiex.png" alt="BAI-EX" style="height:26px;filter:invert(1);mix-blend-mode:screen"></div>
+    <div class="brand-sub">{{ session.empresa_nome[:28] }}</div>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="/empresa/dashboard"><i class="bi bi-speedometer2"></i>Dashboard</a>
+    <a href="/empresa/alertas"><i class="bi bi-bell"></i>Alertas</a>
+    <div class="nav-section">IA</div>
+    <a href="/empresa/previsao"><i class="bi bi-graph-up-arrow"></i>Previsão IA</a>
+    <a href="/empresa/relatorio/ia"><i class="bi bi-file-earmark-richtext"></i>Relatório IA ✨</a>
+    <a href="/empresa/chat"><i class="bi bi-robot"></i>BAIA</a>
+    <div class="nav-section">Gestão</div>
+    <a href="/empresa/funcionarios"><i class="bi bi-people"></i>Funcionários</a>
+    <a href="/empresa/relatorio" class="active"><i class="bi bi-file-earmark-text"></i>Relatório NR-01</a>
+    <a href="/empresa/conta"><i class="bi bi-person-gear"></i>Minha Conta</a>
+    <a href="/empresa/logout"><i class="bi bi-box-arrow-left"></i>Sair</a>
+  </nav>
+  <div class="sidebar-footer">BAI-EX © 2025</div>
+</aside>
+{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <h1 style="font-size:1.5rem;font-weight:700;color:#fff;margin:0">Relatório de Conformidade NR-01</h1>
+    <p style="color:var(--radar-muted);font-size:.82rem;margin:.2rem 0 0">Gerado em {{ gerado_em }}</p>
+  </div>
+  <button onclick="window.print()" class="btn-primary-radar"><i class="bi bi-printer"></i>Imprimir / PDF</button>
+</div>
+
+<div class="card-radar mb-4" style="background:rgba(34,197,94,.07);border-color:rgba(34,197,94,.25)">
+  <div class="d-flex align-items-center gap-3">
+    <div style="font-size:2rem">✅</div>
+    <div>
+      <div style="font-weight:700;color:#fff;font-size:1rem">{{ empresa.nome }}</div>
+      <div style="color:#4ade80;font-size:.85rem">CNPJ: {{ empresa.cnpj }} · Responsável: {{ empresa.responsavel }}</div>
+      <div style="color:var(--radar-muted);font-size:.8rem">Esta empresa monitora ativamente os riscos psicossociais conforme exigido pela NR-01 atualizada.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Resumo 4 semanas -->
+<div class="card-radar mb-4">
+  <div class="card-title"><i class="bi bi-table me-1"></i>Monitoramento — Últimas 4 Semanas</div>
+  <table class="table-radar">
+    <thead><tr><th>Semana</th><th>Check-ins Realizados</th><th>Score Médio de Risco</th><th>Classificação</th><th>Baixo</th><th>Moderado</th><th>Alto</th><th>Crítico</th></tr></thead>
+    <tbody>
+      {% for d in dados_semanas %}
+      <tr>
+        <td style="font-weight:600">Semana {{ d.semana }}/{{ d.ano }}</td>
+        <td>{{ d.total }} <span style="color:var(--radar-muted);font-size:.78rem">de {{ total_func }}</span></td>
+        <td style="font-weight:700">{{ d.score }}<span style="color:var(--radar-muted);font-size:.78rem">/100</span></td>
+        <td>
+          {% if d.score > 0 %}
+          {% set nivel = 'critico' if d.score >= 75 else ('alto' if d.score >= 55 else ('moderado' if d.score >= 30 else 'baixo')) %}
+          <span class="badge-risco badge-risco-{{ nivel }}">{{ nivel.title() }}</span>
+          {% else %}<span style="color:#1C2128">Sem dados</span>{% endif %}
+        </td>
+        <td style="color:#22c55e">{{ d.dist.baixo }}</td>
+        <td style="color:#eab308">{{ d.dist.moderado }}</td>
+        <td style="color:#ef4444">{{ d.dist.alto }}</td>
+        <td style="color:#22D3EE">{{ d.dist.critico }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Conformidade NR-01 -->
+<div class="card-radar mb-4">
+  <div class="card-title"><i class="bi bi-patch-check me-1"></i>Evidências de Conformidade com a NR-01</div>
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div style="background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:1rem">
+        <div style="color:#4ade80;font-weight:600;margin-bottom:.5rem"><i class="bi bi-check-circle-fill me-2"></i>Identificação de Riscos</div>
+        <div style="color:var(--radar-muted);font-size:.85rem">A empresa realiza check-ins semanais para identificar fatores de risco psicossocial, incluindo estresse, sobrecarga, esgotamento, qualidade do sono, motivação e relações interpessoais.</div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div style="background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:1rem">
+        <div style="color:#4ade80;font-weight:600;margin-bottom:.5rem"><i class="bi bi-check-circle-fill me-2"></i>Monitoramento Contínuo</div>
+        <div style="color:var(--radar-muted);font-size:.85rem">O sistema gera score de risco 0-100 por colaborador, com classificação em 4 níveis (baixo, moderado, alto, crítico) e histórico de 8 semanas para análise de tendências.</div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div style="background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:1rem">
+        <div style="color:#4ade80;font-weight:600;margin-bottom:.5rem"><i class="bi bi-check-circle-fill me-2"></i>Alertas e Ações Preventivas</div>
+        <div style="color:var(--radar-muted);font-size:.85rem">Alertas automáticos ao RH quando funcionários atingem risco alto ou crítico, com protocolo de ação definido para cada nível de risco.</div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div style="background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:1rem">
+        <div style="color:#4ade80;font-weight:600;margin-bottom:.5rem"><i class="bi bi-check-circle-fill me-2"></i>Documentação e Auditoria</div>
+        <div style="color:var(--radar-muted);font-size:.85rem">Relatórios gerados automaticamente com registro de datas, scores, ações e tendências. Disponível para auditorias do MTE e processos trabalhistas.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center;padding:1rem;color:var(--radar-muted);font-size:.78rem;border-top:1px solid var(--radar-border);margin-top:2rem">
+  Relatório gerado automaticamente pelo BAI-EX · {{ gerado_em }}<br>
+  Este documento pode ser apresentado como evidência de conformidade com a NR-01 (Norma Regulamentadora nº 1)
+</div>
+{% endblock %}

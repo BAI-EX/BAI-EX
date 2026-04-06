@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+{% block title %}Minha Conta — BAI-EX{% endblock %}
+
+{% block sidebar %}
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo"><img src="/static/logo_baiex.png" alt="BAI-EX" style="height:26px;filter:invert(1);mix-blend-mode:screen"></div>
+    <div class="brand-sub">{{ session.empresa_nome[:28] }}</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Principal</div>
+    <a href="/empresa/dashboard"><i class="bi bi-speedometer2"></i>Dashboard</a>
+    <a href="/empresa/alertas"><i class="bi bi-bell"></i>Alertas</a>
+    <div class="nav-section">Inteligência Artificial</div>
+    <a href="/empresa/previsao"><i class="bi bi-graph-up-arrow"></i>Previsão IA</a>
+    <a href="/empresa/relatorio/ia"><i class="bi bi-file-earmark-richtext"></i>Relatório IA ✨</a>
+    <a href="/empresa/chat"><i class="bi bi-robot"></i>BAIA — Chat IA</a>
+    <div class="nav-section">Gestão</div>
+    <a href="/empresa/funcionarios"><i class="bi bi-people"></i>Funcionários</a>
+    <a href="/empresa/relatorio"><i class="bi bi-file-earmark-text"></i>Relatório NR-01</a>
+    <div class="nav-section">Conta</div>
+    <a href="/empresa/conta" class="active"><i class="bi bi-person-gear"></i>Minha Conta</a>
+    <a href="/empresa/logout"><i class="bi bi-box-arrow-left"></i>Sair</a>
+  </nav>
+  <div class="sidebar-footer">BAI-EX © 2025</div>
+</aside>
+{% endblock %}
+
+{% block content %}
+<div class="topbar">
+  <div>
+    <h1 class="page-header" style="margin:0">Minha Conta</h1>
+    <p style="color:var(--radar-muted);font-size:.82rem;margin:.2rem 0 0">Plano, frequência e configurações</p>
+  </div>
+  <div class="user-pill">
+    <div class="user-avatar">{{ session.empresa_nome[0] }}</div>
+    {{ session.empresa_nome[:20] }}
+  </div>
+</div>
+
+<div class="row g-4">
+
+  <!-- PLANO ATUAL -->
+  <div class="col-lg-6">
+    <div class="card-radar h-100">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.2rem">
+        <div>
+          <p style="color:var(--radar-muted);font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin:0 0 .3rem">Plano Atual</p>
+          <h3 style="margin:0;color:var(--radar-text);font-size:1.5rem">{{ plano_info.nome }}</h3>
+        </div>
+        {% if empresa.em_trial %}
+        <span style="background:rgba(245,158,11,.15);color:#F59E0B;font-size:.72rem;font-weight:700;padding:.3rem .7rem;border-radius:20px;border:1px solid rgba(245,158,11,.3)">
+          TRIAL — {{ empresa.dias_trial_restantes }}d restantes
+        </span>
+        {% elif empresa.cancelado %}
+        <span style="background:rgba(239,68,68,.15);color:#EF4444;font-size:.72rem;font-weight:700;padding:.3rem .7rem;border-radius:20px;border:1px solid rgba(239,68,68,.3)">
+          CANCELADO
+        </span>
+        {% else %}
+        <span style="background:rgba(16,185,129,.15);color:#10B981;font-size:.72rem;font-weight:700;padding:.3rem .7rem;border-radius:20px;border:1px solid rgba(16,185,129,.3)">
+          ATIVO
+        </span>
+        {% endif %}
+      </div>
+
+      <div style="background:var(--radar-bg);border-radius:10px;padding:1rem;margin-bottom:1rem">
+        <div style="display:flex;justify-content:space-between;margin-bottom:.5rem">
+          <span style="color:var(--radar-muted);font-size:.82rem">Preço atual</span>
+          <span style="color:var(--radar-text);font-weight:700">
+            {% if plano_info.preco_tipo == 'fixo' %}
+              {{ plano_info.preco_display }}
+            {% else %}
+              R$ {{ "%.2f"|format(preco_atual) }}/mês ({{ total_func }} func × R${{ plano_info.preco_por_func }})
+            {% endif %}
+          </span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:.5rem">
+          <span style="color:var(--radar-muted);font-size:.82rem">Funcionários ativos</span>
+          <span style="color:var(--radar-text);font-weight:600">{{ total_func }} / {{ empresa.limite_funcionarios }}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span style="color:var(--radar-muted);font-size:.82rem">Frequência de check-in</span>
+          <span style="color:#22D3EE;font-weight:600">{{ empresa.frequencia_checkin | title }}</span>
+        </div>
+      </div>
+
+      <!-- Barra de uso de funcionários -->
+      {% set pct = ((total_func / empresa.limite_funcionarios) * 100) | int %}
+      <div style="margin-bottom:1rem">
+        <div style="display:flex;justify-content:space-between;margin-bottom:.3rem">
+          <span style="color:var(--radar-muted);font-size:.78rem">Uso do plano</span>
+          <span style="color:var(--radar-muted);font-size:.78rem">{{ pct }}%</span>
+        </div>
+        <div style="background:var(--radar-border);border-radius:4px;height:6px">
+          <div style="width:{{ [pct, 100]|min }}%;height:6px;border-radius:4px;background:{% if pct >= 90 %}#EF4444{% elif pct >= 70 %}#F59E0B{% else %}#10B981{% endif %}"></div>
+        </div>
+        {% if pct >= 90 %}
+        <p style="color:#EF4444;font-size:.75rem;margin:.4rem 0 0">⚠️ Limite quase atingido. Considere fazer upgrade.</p>
+        {% endif %}
+      </div>
+
+      {% if empresa.em_trial %}
+      <a href="/assinar/{{ empresa.plano_base }}" style="display:block;text-align:center;background:#0891B2;color:#fff;font-weight:700;padding:.65rem;border-radius:8px;text-decoration:none;font-size:.88rem">
+        💳 Ativar assinatura agora
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- FREQUÊNCIA DE CHECK-IN -->
+  <div class="col-lg-6">
+    <div class="card-radar h-100">
+      <p style="color:var(--radar-muted);font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin:0 0 1rem">Frequência de Check-in</p>
+
+      {% if empresa.tem_acesso('profissional') %}
+      <form method="POST" action="/empresa/conta/frequencia">
+        <p style="color:var(--radar-muted);font-size:.85rem;margin:0 0 1rem;line-height:1.5">
+          Defina com que frequência seus funcionários respondem o check-in de bem-estar.
+        </p>
+        <div style="display:flex;flex-direction:column;gap:.6rem;margin-bottom:1.2rem">
+          {% for val, label, desc in [
+            ('semanal', 'Semanal', 'Toda semana — maior precisão nos dados'),
+            ('quinzenal', 'Quinzenal', 'A cada 14 dias — boa para equipes agitadas'),
+            ('mensal', 'Mensal', 'Uma vez por mês — mínimo exigido pela NR-01'),
+          ] %}
+          <label style="display:flex;align-items:flex-start;gap:.8rem;background:var(--radar-bg);border:1px solid {% if empresa.frequencia_checkin == val %}#0891B2{% else %}var(--radar-border){% endif %};border-radius:8px;padding:.75rem;cursor:pointer">
+            <input type="radio" name="frequencia" value="{{ val }}" {% if empresa.frequencia_checkin == val %}checked{% endif %}
+                   style="margin-top:2px;accent-color:#0891B2">
+            <div>
+              <div style="color:var(--radar-text);font-weight:600;font-size:.88rem">{{ label }}</div>
+              <div style="color:var(--radar-muted);font-size:.78rem;margin-top:.15rem">{{ desc }}</div>
+            </div>
+          </label>
+          {% endfor %}
+        </div>
+        <button type="submit" class="btn-primary-radar" style="width:100%;justify-content:center">
+          <i class="bi bi-check-lg"></i> Salvar frequência
+        </button>
+      </form>
+      {% else %}
+      <div style="text-align:center;padding:2rem 0">
+        <i class="bi bi-lock-fill" style="font-size:2rem;color:var(--radar-muted);display:block;margin-bottom:.75rem"></i>
+        <p style="color:var(--radar-muted);font-size:.88rem;margin:0 0 1rem">
+          Frequência configurável disponível no plano <strong style="color:#22D3EE">Profissional</strong> e acima.
+          <br>Seu plano atual (<strong>{{ plano_info.nome }}</strong>) usa check-in semanal fixo.
+        </p>
+        <a href="/assinar/profissional" style="display:inline-block;background:#0891B2;color:#fff;font-weight:600;font-size:.85rem;padding:.55rem 1.2rem;border-radius:8px;text-decoration:none">
+          Fazer upgrade →
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- UPGRADE DE PLANO — 3 planos fixos, migração gera alerta ao admin -->
+  <div class="col-12">
+    <div class="card-radar">
+      <p style="color:var(--radar-muted);font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin:0 0 .4rem">Planos disponíveis</p>
+      <p style="color:var(--radar-muted);font-size:.78rem;margin:0 0 1.2rem">Para migrar de plano, clique em "Solicitar migração". Nossa equipe entrará em contato em até 24h.</p>
+      <div class="row g-3">
+
+        {% set planos_exibir = [
+          ('starter1',     'Starter',       'R$149/mês',         'Até 15 funcionários · fixo',            '#8B949E'),
+          ('profissional', 'Profissional',  'R$15/func/mês',     '16 a 200 funcionários',                 '#0891B2'),
+          ('enterprise',   'Enterprise',    'Sob consulta',      'Para empresas com recursos avançados',  '#D97706'),
+        ] %}
+
+        {% for plano_key, plano_nome, plano_preco, plano_desc, plano_cor in planos_exibir %}
+        <div class="col-md-4">
+          <div style="background:var(--radar-bg);border:{% if empresa.plano_base == plano_key or (plano_key == 'starter1' and empresa.plano_base in ('starter','starter1','starter2')) %}1.5px solid #0891B2{% else %}1px solid var(--radar-border){% endif %};border-radius:10px;padding:1rem;height:100%;display:flex;flex-direction:column">
+            {% if empresa.plano_base == plano_key or (plano_key == 'starter1' and empresa.plano_base in ('starter','starter1','starter2')) %}
+            <span style="font-size:.65rem;font-weight:700;color:#0891B2;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.3rem">✓ Plano atual</span>
+            {% endif %}
+            <div style="font-weight:700;color:var(--radar-text);font-size:.9rem;margin-bottom:.2rem">{{ plano_nome }}</div>
+            <div style="color:{{ plano_cor }};font-weight:800;font-size:1.1rem;margin-bottom:.3rem">{{ plano_preco }}</div>
+            <div style="color:var(--radar-muted);font-size:.75rem;margin-bottom:.8rem;flex:1">{{ plano_desc }}</div>
+
+            {% if empresa.plano_base != plano_key and not (plano_key == 'starter1' and empresa.plano_base in ('starter','starter1','starter2')) %}
+              {% if plano_key == 'enterprise' %}
+              <a href="https://wa.me/5574988099047?text=Ol%C3%A1%21+Sou+cliente+BAI-EX+%28{{ empresa.nome | urlencode }}%29+e+tenho+interesse+em+migrar+para+o+plano+Enterprise."
+                 target="_blank" rel="noopener"
+                 style="display:block;text-align:center;background:rgba(217,119,6,.12);color:#D97706;font-weight:600;font-size:.78rem;padding:.45rem;border-radius:6px;text-decoration:none;border:1px solid rgba(217,119,6,.3)">
+                💬 Falar com consultor
+              </a>
+              {% else %}
+              <button onclick="solicitarMigracao('{{ plano_key }}', '{{ plano_nome }}')"
+                      style="display:block;width:100%;text-align:center;background:rgba(8,145,178,.15);color:#22D3EE;font-weight:600;font-size:.78rem;padding:.45rem;border-radius:6px;border:1px solid rgba(8,145,178,.3);cursor:pointer">
+                Solicitar migração
+              </button>
+              {% endif %}
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+  function solicitarMigracao(planoKey, planoNome) {
+    if (!confirm('Solicitar migração para o plano ' + planoNome + '?\n\nNossa equipe entrará em contato em até 24 horas para confirmar a mudança.')) return;
+    fetch('/empresa/solicitar-migracao', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({plano: planoKey, nome: planoNome})
+    })
+    .then(r => r.json())
+    .then(d => {
+      if (d.ok) {
+        alert('✅ Solicitação enviada!\n\nNossa equipe entrará em contato em até 24 horas para finalizar a migração para o plano ' + planoNome + '.');
+      } else {
+        alert('Erro ao enviar solicitação. Tente novamente ou entre em contato: baiexstartup@gmail.com');
+      }
+    })
+    .catch(() => alert('Erro de conexão. Tente novamente.'));
+  }
+  </script>
+
+  <!-- CANCELAMENTO -->
+  {% if not empresa.cancelado %}
+  <div class="col-12">
+    <div class="card-radar" style="border-color:rgba(239,68,68,.2)">
+      <p style="color:var(--radar-muted);font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin:0 0 .5rem">Zona de perigo</p>
+      <p style="color:var(--radar-muted);font-size:.85rem;margin:0 0 1rem">
+        Ao cancelar, sua conta ficará acessível até o fim do período pago (ou do trial).
+        Após isso, os dados serão mantidos por 90 dias antes de serem excluídos permanentemente.
+      </p>
+      <button type="button" style="background:transparent;color:#EF4444;border:1px solid rgba(239,68,68,.4);padding:.5rem 1rem;border-radius:8px;font-size:.85rem;cursor:pointer"
+              onclick="document.getElementById('modal-cancelar').style.display='flex'">
+        <i class="bi bi-x-circle me-1"></i> Cancelar assinatura
+      </button>
+    </div>
+  </div>
+  {% endif %}
+
+</div><!-- /row -->
+
+<!-- MODAL CANCELAMENTO -->
+<div id="modal-cancelar" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:#161B22;border:1px solid #EF4444;border-radius:14px;padding:2rem;max-width:420px;width:90%">
+    <h4 style="color:#EF4444;margin:0 0 .5rem">Cancelar assinatura</h4>
+    <p style="color:var(--radar-muted);font-size:.88rem;margin:0 0 1.2rem">
+      Para confirmar, digite o nome da empresa exatamente como mostrado abaixo:
+      <br><strong style="color:var(--radar-text)">{{ empresa.nome }}</strong>
+    </p>
+    <form method="POST" action="/empresa/conta/cancelar">
+      <input type="text" name="confirmar_cancelamento" placeholder="Nome da empresa"
+             style="width:100%;background:#0D1117;border:1px solid #21262D;border-radius:8px;padding:.6rem .8rem;color:#F0F6FC;font-size:.88rem;margin-bottom:1rem">
+      <div style="display:flex;gap:.75rem">
+        <button type="submit" style="flex:1;background:#EF4444;color:#fff;border:none;padding:.65rem;border-radius:8px;font-weight:700;cursor:pointer">
+          Confirmar cancelamento
+        </button>
+        <button type="button" onclick="document.getElementById('modal-cancelar').style.display='none'"
+                style="flex:1;background:var(--radar-bg);color:var(--radar-muted);border:1px solid var(--radar-border);padding:.65rem;border-radius:8px;cursor:pointer">
+          Voltar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
