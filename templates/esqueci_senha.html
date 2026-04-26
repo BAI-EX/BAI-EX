@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Esqueci minha senha — BAI-EX{% endblock %}
+{% block sidebar %}{% endblock %}
+{% block body %}
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse 70% 50% at 50% 0,rgba(8,145,178,.3) 0%,transparent 70%),var(--radar-dark)">
+  <div style="width:100%;max-width:400px;padding:1rem">
+    <div class="text-center mb-4">
+      <a href="/" style="text-decoration:none"><img src="/static/logo_baiex.png" alt="BAI-EX" style="height:44px;filter:invert(1);mix-blend-mode:screen"></a>
+      <p style="color:var(--radar-muted);font-size:.85rem;margin:.5rem 0 0">Recuperacao de senha</p>
+    </div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}{% for cat, msg in messages %}
+        <div class="alert-radar mb-3" style="{% if cat=='danger' %}background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:#f87171{% else %}background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.3);color:#4ade80{% endif %}">
+          <i class="bi bi-{% if cat=='success' %}check-circle{% else %}exclamation-circle{% endif %} me-2"></i>{{ msg }}
+        </div>
+      {% endfor %}{% endif %}
+    {% endwith %}
+    <div class="card-radar">
+      <p style="color:var(--radar-muted);font-size:.87rem;margin-bottom:1.25rem">Informe seu e-mail cadastrado. Se encontrado, enviaremos uma senha temporaria.</p>
+      <form method="POST" action="/esqueci-senha?area={{ area }}">
+        <div class="mb-4">
+          <label class="form-label-radar">{% if area == 'admin' %}Usuario{% else %}E-mail{% endif %}</label>
+          <input type="{% if area == 'admin' %}text{% else %}email{% endif %}" name="email" class="form-control form-control-radar"
+                 placeholder="{% if area == 'admin' %}admin{% else %}seu@email.com{% endif %}" required>
+        </div>
+        <button type="submit" class="btn-primary-radar w-100 justify-content-center"><i class="bi bi-envelope"></i>Enviar senha temporaria</button>
+      </form>
+      <hr style="border-color:var(--radar-border);margin:1.25rem 0">
+      <div class="text-center" style="font-size:.85rem;color:var(--radar-muted)">Lembrou a senha?
+        {% if area == 'funcionario' %}<a href="/funcionario/login" style="color:var(--radar-secondary)">Voltar ao login</a>
+        {% elif area == 'admin' %}<a href="/admin/login" style="color:var(--radar-secondary)">Voltar ao login</a>
+        {% else %}<a href="/empresa/login" style="color:var(--radar-secondary)">Voltar ao login</a>{% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

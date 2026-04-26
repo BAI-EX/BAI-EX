@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request, flash, session, jsonify, Response, stream_with_context
+from flask import Flask, render_template, redirect, url_for, request, flash, session, jsonify, Response, stream_with_context, make_response
 import anthropic
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -164,6 +164,8 @@ class Empresa(db.Model):
     ativo = db.Column(db.Boolean, default=True)
     cancelado = db.Column(db.Boolean, default=False)
     criado_em = db.Column(db.DateTime, default=datetime.utcnow)
+    fidelizacao_inicio = db.Column(db.DateTime, nullable=True)
+    fidelizacao_fim    = db.Column(db.DateTime, nullable=True)
     funcionarios = db.relationship('Funcionario', backref='empresa', lazy=True)
 
     # ── helpers de plano ──────────────────────────────────────
@@ -189,6 +191,19 @@ class Empresa(db.Model):
         if not self.em_trial:
             return False
         return self.dias_trial_restantes == 0
+
+    @property
+    def em_fidelizacao(self):
+        """True durante os 6 meses de fidelização após ativar plano pago."""
+        if not self.fidelizacao_fim:
+            return False
+        return datetime.utcnow() < self.fidelizacao_fim
+
+    @property
+    def meses_fidelizacao_restantes(self):
+        if not self.em_fidelizacao:
+            return 0
+        return max(1, int((self.fidelizacao_fim - datetime.utcnow()).days / 30))
 
     @property
     def nivel_plano(self):
@@ -241,6 +256,23 @@ class CheckIn(db.Model):
     q6_relacoes = db.Column(db.Integer, nullable=False)       # relações no trabalho
     q7_autonomia = db.Column(db.Integer, nullable=False)      # sensação de controle
     q8_reconhecimento = db.Column(db.Integer, nullable=False) # reconhecimento
+    # Perguntas 9-24 (adicionadas)
+    q9_clareza        = db.Column(db.Integer, nullable=True)  # clareza do trabalho
+    q10_comunicacao   = db.Column(db.Integer, nullable=True)  # comunicacao
+    q11_lideranca     = db.Column(db.Integer, nullable=True)  # apoio da lideranca
+    q12_ritmo         = db.Column(db.Integer, nullable=True)  # ritmo de trabalho
+    q13_interrupcoes  = db.Column(db.Integer, nullable=True)  # interrupcoes
+    q14_decisao       = db.Column(db.Integer, nullable=True)  # autonomia decisoria
+    q15_seguranca     = db.Column(db.Integer, nullable=True)  # seguranca psicologica
+    q16_conflitos     = db.Column(db.Integer, nullable=True)  # conflitos na equipe
+    q17_justica       = db.Column(db.Integer, nullable=True)  # justica organizacional
+    q18_desconexao    = db.Column(db.Integer, nullable=True)  # desconexao fora do expediente
+    q19_descanso      = db.Column(db.Integer, nullable=True)  # descanso suficiente
+    q20_pressao       = db.Column(db.Integer, nullable=True)  # pressao por resultados
+    q21_desanimo      = db.Column(db.Integer, nullable=True)  # desanimo frequente
+    q22_respeito      = db.Column(db.Integer, nullable=True)  # respeito no ambiente
+    q23_performance   = db.Column(db.Integer, nullable=True)  # queda de produtividade
+    q24_satisfacao    = db.Column(db.Integer, nullable=True)  # satisfacao geral
 
     score = db.Column(db.Float, nullable=False)  # 0-100 (100 = risco máximo)
     nivel_risco = db.Column(db.String(20), nullable=False)   # baixo / moderado / alto / critico
@@ -250,10 +282,11 @@ class CheckIn(db.Model):
         """
         Calcula o score de risco de burnout (0-100).
         Todas as perguntas: 1 = melhor situação, 5 = pior situação.
-        Soma direta: mín=8 (sem risco), máx=40 (risco máximo).
+        Compatível com 8 perguntas (legado) e 24 perguntas (atual).
         """
-        pontos = sum(respostas)  # min=8, max=40
-        score = ((pontos - 8) / (40 - 8)) * 100
+        n = len(respostas)
+        pontos = sum(respostas)
+        score = ((pontos - n) / (n * 4)) * 100  # min=n, max=5n → normaliza para 0-100
         return round(score, 1)
 
     @staticmethod
@@ -547,6 +580,56 @@ app.jinja_env.globals['plano_badge_color'] = plano_badge_color
 
 # ─────────────────────────── ROTAS GERAIS ───────────────────────────
 
+
+@app.route('/esqueci-senha', methods=['GET', 'POST'])
+def esqueci_senha():
+    area = request.args.get('area', 'empresa')
+    if request.method == 'GET':
+        return render_template('esqueci_senha.html', area=area)
+    email = request.form.get('email', '').strip().lower()
+    if not email:
+        flash('Informe seu e-mail.', 'danger')
+        return render_template('esqueci_senha.html', area=area)
+    import secrets as _sec, string as _str
+    nova_senha = ''.join(_sec.choice(_str.ascii_letters + _str.digits) for _ in range(10))
+    usuario = None
+    if area == 'empresa':
+        usuario = Empresa.query.filter_by(email=email).first()
+    elif area == 'funcionario':
+        usuario = Funcionario.query.filter_by(email=email).first()
+    elif area == 'admin':
+        usuario = Admin.query.filter_by(usuario=email).first()
+    if usuario:
+        usuario.senha = generate_password_hash(nova_senha)
+        db.session.commit()
+        try:
+            gu = os.environ.get('GMAIL_USER', ''); gp = os.environ.get('GMAIL_APP_PASSWORD', '')
+            if gu and gp:
+                import smtplib
+                from email.mime.text import MIMEText
+                from email.mime.multipart import MIMEMultipart
+                msg = MIMEMultipart('alternative')
+                msg['Subject'] = 'BAI-EX - Nova senha temporaria'
+                msg['From'] = 'BAI-EX <' + gu + '>'; msg['To'] = email
+                bu = os.environ.get('BASE_URL', 'https://bai-ex.onrender.com')
+                html = ('<div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;padding:2rem;background:#0D1117;color:#F0F6FC;border-radius:12px">'
+                        '<h2 style="color:#fff;font-size:1.1rem">Sua nova senha temporaria</h2>'
+                        '<p style="color:#C9D1D9">Use a senha abaixo para entrar no BAI-EX:</p>'
+                        '<div style="background:#161B22;border:1px solid #21262D;border-radius:8px;padding:1rem;margin:1rem 0;text-align:center">'
+                        '<span style="color:#22D3EE;font-size:1.4rem;font-weight:700;letter-spacing:.15em">' + nova_senha + '</span></div>'
+                        '<p style="color:#C9D1D9;font-size:.85rem">Apos entrar, va em <strong>Minha Conta</strong> para alterar sua senha.</p>'
+                        '<a href="' + bu + '" style="display:inline-block;background:#0891B2;color:#fff;padding:.6rem 1.2rem;border-radius:8px;text-decoration:none;font-weight:600;font-size:.85rem;margin-top:.5rem">Acessar BAI-EX</a>'
+                        '</div>')
+                msg.attach(MIMEText(html, 'html'))
+                with smtplib.SMTP_SSL('smtp.gmail.com', 465) as s:
+                    s.login(gu, gp); s.sendmail(gu, email, msg.as_string())
+        except Exception as e:
+            print('[ESQUECI_SENHA] ' + str(e))
+        registrar_auditoria('RESET_SENHA', 'Email: ' + email + ' | Area: ' + area, tipo_usuario=area)
+    flash('Se este e-mail estiver cadastrado, voce recebera uma senha temporaria.', 'success')
+    return redirect({'empresa': '/empresa/login', 'funcionario': '/funcionario/login', 'admin': '/admin/login'}.get(area, '/empresa/login'))
+
+
 @app.route('/')
 def index():
     return render_template('index.html', planos=PLANOS_INFO)
@@ -764,6 +847,265 @@ def relatorio_empresa():
         gerado_em=datetime.now().strftime('%d/%m/%Y %H:%M')
     )
 
+
+@app.route('/empresa/relatorio/download-docx')
+@login_required_empresa
+def download_relatorio_docx():
+    """Gera Relatorio de Compliance NR-01 em .docx - 7 secoes conforme modelo PGR."""
+    from docx import Document as DocxDoc
+    from docx.shared import Pt, RGBColor, Cm
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    from docx.oxml.ns import qn
+    from docx.oxml import OxmlElement
+    from io import BytesIO
+
+    empresa_id = session['empresa_id']
+    empresa    = Empresa.query.get(empresa_id)
+    periodo    = request.args.get('periodo', 'semanal')
+    num_semanas = {'semanal': 4, 'quinzenal': 8, 'mensal': 12}.get(periodo, 4)
+
+    dados_semanas = []
+    for i in range(num_semanas - 1, -1, -1):
+        dt   = date.today() - timedelta(weeks=i)
+        s, a = dt.isocalendar()[1], dt.year
+        cks  = CheckIn.query.filter_by(empresa_id=empresa_id, semana=s, ano=a).all()
+        sc   = round(sum(c.score for c in cks) / len(cks), 1) if cks else 0
+        dist = {'baixo': 0, 'moderado': 0, 'alto': 0, 'critico': 0}
+        for c in cks:
+            if c.nivel_risco in dist:
+                dist[c.nivel_risco] += 1
+        dados_semanas.append({'semana': s, 'ano': a, 'score': sc, 'total': len(cks), 'dist': dist})
+
+    total_func     = Funcionario.query.filter_by(empresa_id=empresa_id, ativo=True).count()
+    total_checkins = sum(d['total'] for d in dados_semanas)
+    scores_validos = [d['score'] for d in dados_semanas if d['score'] > 0]
+    score_geral    = round(sum(scores_validos) / max(1, len(scores_validos)), 1)
+    dist_total     = {'baixo': 0, 'moderado': 0, 'alto': 0, 'critico': 0}
+    for d in dados_semanas:
+        for k in dist_total:
+            dist_total[k] += d['dist'][k]
+
+    if score_geral < 30:   nivel_conf = 'ALTO';   status_conf = 'Conforme'
+    elif score_geral < 55: nivel_conf = 'MEDIO';  status_conf = 'Parcial'
+    else:                  nivel_conf = 'BAIXO';  status_conf = 'Nao conforme'
+
+    nao_conf = []
+    for d in dados_semanas:
+        taxa = round(d['total'] / max(1, total_func) * 100, 0)
+        if taxa < 70:
+            nao_conf.append({
+                'desc': 'Semana ' + str(d['semana']) + '/' + str(d['ano']) + ': taxa de resposta ' + str(int(taxa)) + '% (abaixo de 70%)',
+                'class': 'Moderada',
+                'acao': 'Reforcar comunicacao e engajamento dos colaboradores',
+                'prazo': '2 semanas'
+            })
+        if d['score'] >= 55:
+            nao_conf.append({
+                'desc': 'Semana ' + str(d['semana']) + '/' + str(d['ano']) + ': score ' + str(d['score']) + '/100 (nivel alto)',
+                'class': 'Grave',
+                'acao': 'Acionar RH para intervencao junto aos colaboradores em risco alto/critico',
+                'prazo': '48 horas'
+            })
+
+    doc = DocxDoc()
+    for sec in doc.sections:
+        sec.top_margin = sec.bottom_margin = Cm(2.5)
+        sec.left_margin = sec.right_margin = Cm(3.18)
+
+    def sf(run, size=11, bold=False, rgb=None):
+        run.font.name = 'Arial'
+        run.font.size = Pt(size)
+        run.font.bold = bold
+        if rgb:
+            run.font.color.rgb = RGBColor(*rgb)
+
+    def cbg(cell, hex_c):
+        tc = cell._tc; tcPr = tc.get_or_add_tcPr()
+        shd = OxmlElement('w:shd')
+        shd.set(qn('w:val'), 'clear'); shd.set(qn('w:color'), 'auto')
+        shd.set(qn('w:fill'), hex_c); tcPr.append(shd)
+
+    def h1(doc, text):
+        p = doc.add_paragraph()
+        r = p.add_run(text)
+        sf(r, 13, True, (8, 64, 110))
+        p.paragraph_format.space_before = Pt(12)
+        p.paragraph_format.space_after  = Pt(4)
+        pPr = p._p.get_or_add_pPr()
+        pBdr = OxmlElement('w:pBdr')
+        btm  = OxmlElement('w:bottom')
+        btm.set(qn('w:val'), 'single'); btm.set(qn('w:sz'), '6')
+        btm.set(qn('w:space'), '1');    btm.set(qn('w:color'), '0891B2')
+        pBdr.append(btm); pPr.append(pBdr)
+        return p
+
+    def kv(doc, lbl, val):
+        p = doc.add_paragraph()
+        sf(p.add_run(lbl + ': '), 10, True)
+        sf(p.add_run(str(val)), 10)
+        p.paragraph_format.space_after = Pt(2)
+
+    # TITULO
+    p_t = doc.add_paragraph()
+    sf(p_t.add_run('RELATORIO DE COMPLIANCE - NR-01'), 20, True, (13, 17, 23))
+    p_t.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p_sub = doc.add_paragraph()
+    sf(p_sub.add_run('BAI-EX - Burnout AI Experience  -  Gerado em ' + datetime.now().strftime('%d/%m/%Y as %H:%M')), 9, False, (139, 148, 158))
+    p_sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+    # 1. IDENTIFICACAO
+    h1(doc, '1. IDENTIFICACAO DA EMPRESA')
+    kv(doc, 'Razao Social', empresa.nome)
+    kv(doc, 'CNPJ', empresa.cnpj)
+    kv(doc, 'Responsavel pelo PGR', empresa.responsavel)
+    kv(doc, 'E-mail', empresa.email)
+    kv(doc, 'Colaboradores monitorados', total_func)
+    kv(doc, 'Periodo analisado', str(num_semanas) + ' semanas (' + periodo + ')')
+
+    # 2. OBJETIVO
+    h1(doc, '2. OBJETIVO')
+    p_obj = doc.add_paragraph()
+    sf(p_obj.add_run(
+        'Avaliar o nivel de conformidade com a NR-01 atualizada, incluindo o Gerenciamento de '
+        'Riscos Ocupacionais (GRO) e o Programa de Gerenciamento de Riscos (PGR), com foco nos '
+        'riscos psicossociais exigidos pelo MTE a partir de janeiro de 2025.'
+    ), 10)
+
+    # 3. ESCOPO
+    h1(doc, '3. ESCOPO')
+    for item in [
+        'Monitoramento continuo de riscos psicossociais por colaborador via check-in periodico',
+        'Analise de ' + str(num_semanas) + ' semanas de dados validados',
+        'Identificacao por dimensao: estresse, sobrecarga, sono, motivacao, relacoes interpessoais',
+        'Score de risco 0-100 por colaborador com classificacao em 4 niveis (baixo/moderado/alto/critico)',
+        'Emissao de alertas automaticos ao RH para colaboradores em risco alto ou critico',
+    ]:
+        p_i = doc.add_paragraph()
+        p_i.paragraph_format.left_indent = Pt(18)
+        p_i.paragraph_format.space_after = Pt(2)
+        sf(p_i.add_run('- '), 10, True, (8, 145, 178))
+        sf(p_i.add_run(item), 10)
+
+    # 4. REQUISITOS E STATUS
+    h1(doc, '4. REQUISITOS E STATUS DE CONFORMIDADE')
+
+    p_41 = doc.add_paragraph()
+    sf(p_41.add_run('4.1 Monitoramento Semanal de Riscos Psicossociais'), 11, True, (8, 64, 110))
+    p_41.paragraph_format.space_after = Pt(4)
+
+    hdrs = ['Semana', 'Check-ins', 'Score Medio', 'Classificacao', 'Baixo', 'Moderado', 'Alto', 'Critico']
+    t1 = doc.add_table(rows=1 + len(dados_semanas), cols=len(hdrs))
+    t1.style = 'Table Grid'
+    for j, h in enumerate(hdrs):
+        c = t1.rows[0].cells[j]; c.text = h; cbg(c, '0D3349')
+        runs = c.paragraphs[0].runs
+        if runs: sf(runs[0], 9, True, (255, 255, 255))
+    for i, d in enumerate(dados_semanas):
+        if   d['score'] >= 75: nv = 'Critico'
+        elif d['score'] >= 55: nv = 'Alto'
+        elif d['score'] >= 30: nv = 'Moderado'
+        elif d['score'] >  0:  nv = 'Baixo'
+        else:                  nv = '-'
+        for j, val in enumerate([
+            'S' + str(d['semana']) + '/' + str(d['ano']), str(d['total']) + '/' + str(total_func),
+            str(d['score']) + '/100', nv,
+            str(d['dist']['baixo']), str(d['dist']['moderado']),
+            str(d['dist']['alto']),  str(d['dist']['critico']),
+        ]):
+            c = t1.rows[i+1].cells[j]; c.text = val
+            cbg(c, 'E8F4F8' if i % 2 == 0 else 'FFFFFF')
+    doc.add_paragraph()
+
+    p_42 = doc.add_paragraph()
+    sf(p_42.add_run('4.2 Avaliacao de Requisitos NR-01'), 11, True, (8, 64, 110))
+    p_42.paragraph_format.space_after = Pt(4)
+
+    c_ok  = '(X)' if status_conf == 'Conforme'      else '( )'
+    c_pc  = '(X)' if status_conf == 'Parcial'        else '( )'
+    c_nc  = '(X)' if status_conf == 'Nao conforme'   else '( )'
+    reqs  = [
+        ('GRO - Gerenciamento de Riscos Ocupacionais',     c_ok, c_pc, c_nc),
+        ('PGR - Programa de Gerenciamento de Riscos',      c_ok, c_pc, c_nc),
+        ('Inventario de Riscos Psicossociais',              c_ok, c_pc, c_nc),
+        ('Monitoramento Continuo dos Colaboradores',        '(X)', '( )', '( )'),
+        ('Emissao de Alertas e Acoes Preventivas',          '(X)', '( )', '( )'),
+        ('Documentacao e Rastreabilidade (20 anos)',        '(X)', '( )', '( )'),
+    ]
+    t2 = doc.add_table(rows=1 + len(reqs), cols=4)
+    t2.style = 'Table Grid'
+    for j, h in enumerate(['Requisito', 'Conforme', 'Parcial', 'Nao conforme']):
+        c2 = t2.rows[0].cells[j]; c2.text = h; cbg(c2, '0D3349')
+        runs = c2.paragraphs[0].runs
+        if runs: sf(runs[0], 9, True, (255, 255, 255))
+    for i, (req, ok, pc, nc) in enumerate(reqs):
+        for j, val in enumerate([req, ok, pc, nc]):
+            c2 = t2.rows[i+1].cells[j]; c2.text = val
+            cbg(c2, 'E8F4F8' if i % 2 == 0 else 'FFFFFF')
+            if j > 0: c2.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+    doc.add_paragraph()
+
+    # 5. NAO CONFORMIDADES
+    h1(doc, '5. NAO CONFORMIDADES IDENTIFICADAS')
+    if not nao_conf:
+        sf(doc.add_paragraph().add_run('Nenhuma nao conformidade identificada no periodo analisado.'), 10, False, (22, 163, 74))
+    else:
+        t3 = doc.add_table(rows=1 + len(nao_conf), cols=4)
+        t3.style = 'Table Grid'
+        for j, h in enumerate(['Descricao', 'Classificacao', 'Acao Recomendada', 'Prazo']):
+            c3 = t3.rows[0].cells[j]; c3.text = h; cbg(c3, '0D3349')
+            runs = c3.paragraphs[0].runs
+            if runs: sf(runs[0], 9, True, (255, 255, 255))
+        for i, item in enumerate(nao_conf):
+            for j, val in enumerate([item['desc'], item['class'], item['acao'], item['prazo']]):
+                c3 = t3.rows[i+1].cells[j]; c3.text = val
+                cbg(c3, 'FFF5F5' if item['class'] == 'Grave' else 'FFFBEB')
+    doc.add_paragraph()
+
+    # 6. CONCLUSAO
+    h1(doc, '6. CONCLUSAO')
+    p_conc = doc.add_paragraph()
+    rgb_nv = (22, 163, 74) if nivel_conf == 'ALTO' else (234, 179, 8) if nivel_conf == 'MEDIO' else (239, 68, 68)
+    sf(p_conc.add_run('Nivel de conformidade identificado: '), 10)
+    sf(p_conc.add_run(nivel_conf + ' (' + status_conf + ')'), 11, True, rgb_nv)
+    txt = (chr(10) + chr(10)
+           + 'No periodo de ' + str(num_semanas) + ' semanas, foram realizados '
+           + str(total_checkins) + ' check-ins de ' + str(total_func) + ' colaboradores. '
+           + 'Score medio geral: ' + str(score_geral) + '/100. '
+           + 'Risco alto: ' + str(dist_total['alto']) + ' | Critico: ' + str(dist_total['critico']) + '.')
+    sf(p_conc.add_run(txt), 10)
+    if nao_conf:
+        sf(p_conc.add_run(chr(10) + chr(10) + 'Recomenda-se execucao imediata das '
+                          + str(len(nao_conf)) + ' acao(oes) corretiva(s) da secao 5.'), 10)
+    else:
+        sf(p_conc.add_run(chr(10) + chr(10) + 'A empresa esta em conformidade com os requisitos de monitoramento da NR-01.'),
+           10, False, (22, 163, 74))
+
+    # 7. RESPONSAVEL
+    h1(doc, '7. RESPONSAVEL PELO RELATORIO')
+    doc.add_paragraph()
+    kv(doc, 'Nome', empresa.responsavel)
+    kv(doc, 'Cargo', 'Responsavel pelo PGR')
+    kv(doc, 'Empresa', empresa.nome)
+    p_assin = doc.add_paragraph()
+    p_assin.paragraph_format.space_before = Pt(20)
+    sf(p_assin.add_run('Assinatura: _________________________________     '), 10)
+    sf(p_assin.add_run('Data: ' + datetime.now().strftime('%d/%m/%Y')), 10)
+    doc.add_paragraph()
+    p_rod = doc.add_paragraph()
+    sf(p_rod.add_run('Relatorio gerado pelo BAI-EX - ' + datetime.now().strftime('%d/%m/%Y %H:%M')
+                     + ' - Evidencia de conformidade NR-01 (Norma Regulamentadora n1 - MTE)'), 8, False, (139, 148, 158))
+    p_rod.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+    buf = BytesIO(); doc.save(buf); buf.seek(0)
+    cnpj_n   = ''.join(filter(str.isdigit, empresa.cnpj or ''))[:14]
+    filename = 'relatorio_compliance_nr01_' + cnpj_n + '_' + datetime.now().strftime('%Y%m%d') + '_' + periodo + '.docx'
+    registrar_auditoria('DOWNLOAD_RELATORIO_NR01', 'Empresa: ' + empresa.nome + ' | Periodo: ' + periodo)
+    resp = make_response(buf.read())
+    resp.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    resp.headers['Content-Disposition'] = 'attachment; filename=' + filename
+    return resp
+
+
 @app.route('/empresa/alertas')
 @login_required_empresa
 def alertas_empresa():
@@ -880,7 +1222,7 @@ def checkin_funcionario():
 
     if request.method == 'POST':
         try:
-            respostas = [int(request.form[f'q{i}']) for i in range(1, 9)]
+            respostas = [int(request.form[f'q{i}']) for i in range(1, 25)]
             if not all(1 <= r <= 5 for r in respostas):
                 flash('Responda todas as perguntas.', 'danger')
                 return render_template('funcionario/checkin.html', funcionario=f,
@@ -894,10 +1236,18 @@ def checkin_funcionario():
                 empresa_id=f.empresa_id,
                 semana=semana, ano=ano,
                 periodo_ref=periodo_ref,
-                q1_estresse=respostas[0], q2_sobrecarga=respostas[1],
-                q3_sono=respostas[2],    q4_motivacao=respostas[3],
+                q1_estresse=respostas[0],   q2_sobrecarga=respostas[1],
+                q3_sono=respostas[2],       q4_motivacao=respostas[3],
                 q5_esgotamento=respostas[4], q6_relacoes=respostas[5],
-                q7_autonomia=respostas[6], q8_reconhecimento=respostas[7],
+                q7_autonomia=respostas[6],   q8_reconhecimento=respostas[7],
+                q9_clareza=respostas[8],     q10_comunicacao=respostas[9],
+                q11_lideranca=respostas[10], q12_ritmo=respostas[11],
+                q13_interrupcoes=respostas[12], q14_decisao=respostas[13],
+                q15_seguranca=respostas[14], q16_conflitos=respostas[15],
+                q17_justica=respostas[16],   q18_desconexao=respostas[17],
+                q19_descanso=respostas[18],  q20_pressao=respostas[19],
+                q21_desanimo=respostas[20],  q22_respeito=respostas[21],
+                q23_performance=respostas[22], q24_satisfacao=respostas[23],
                 score=score, nivel_risco=nivel
             )
             db.session.add(ck)
@@ -1629,6 +1979,8 @@ def assinatura_sucesso():
             checkout_session = stripe.checkout.Session.retrieve(session_id)
             plano_ativado = checkout_session.metadata.get('plano', empresa.plano_base)
             empresa.plano = plano_ativado  # sem prefixo trial_
+            empresa.fidelizacao_inicio = datetime.utcnow()
+            empresa.fidelizacao_fim    = datetime.utcnow() + timedelta(days=180)
             db.session.commit()
             registrar_auditoria('ASSINATURA_ATIVA', f'Plano: {plano_ativado}',
                                 tipo_usuario='empresa', usuario_id=empresa.id, empresa_id=empresa.id)

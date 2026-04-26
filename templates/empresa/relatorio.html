@@ -28,8 +28,40 @@
     <h1 style="font-size:1.5rem;font-weight:700;color:#fff;margin:0">Relatório de Conformidade NR-01</h1>
     <p style="color:var(--radar-muted);font-size:.82rem;margin:.2rem 0 0">Gerado em {{ gerado_em }}</p>
   </div>
-  <button onclick="window.print()" class="btn-primary-radar"><i class="bi bi-printer"></i>Imprimir / PDF</button>
+  <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap">
+    <button onclick="window.print()" class="btn-primary-radar"><i class="bi bi-printer"></i>Imprimir / PDF</button>
+    <div style="position:relative">
+      <button id="btn-docx-toggle" class="btn-outline-radar" style="font-size:.85rem;white-space:nowrap"
+              onclick="document.getElementById('docx-dropdown').classList.toggle('d-none')">
+        <i class="bi bi-file-earmark-word" style="color:#22c55e"></i> Baixar NR-01 (.docx) ▾
+      </button>
+      <div id="docx-dropdown" class="d-none" style="position:absolute;right:0;top:calc(100% + 6px);background:#161B22;border:1px solid #21262D;border-radius:8px;min-width:160px;z-index:100;overflow:hidden">
+        <a href="/empresa/relatorio/download-docx?periodo=semanal"
+           style="display:flex;align-items:center;gap:.5rem;padding:.65rem 1rem;color:#C9D1D9;text-decoration:none;font-size:.85rem;border-bottom:1px solid #21262D"
+           onmouseover="this.style.background='rgba(255,255,255,.04)'" onmouseout="this.style.background=''">
+          <i class="bi bi-calendar-week" style="color:#22D3EE"></i> Semanal
+        </a>
+        <a href="/empresa/relatorio/download-docx?periodo=quinzenal"
+           style="display:flex;align-items:center;gap:.5rem;padding:.65rem 1rem;color:#C9D1D9;text-decoration:none;font-size:.85rem;border-bottom:1px solid #21262D"
+           onmouseover="this.style.background='rgba(255,255,255,.04)'" onmouseout="this.style.background=''">
+          <i class="bi bi-calendar2-range" style="color:#22D3EE"></i> Quinzenal
+        </a>
+        <a href="/empresa/relatorio/download-docx?periodo=mensal"
+           style="display:flex;align-items:center;gap:.5rem;padding:.65rem 1rem;color:#C9D1D9;text-decoration:none;font-size:.85rem"
+           onmouseover="this.style.background='rgba(255,255,255,.04)'" onmouseout="this.style.background=''">
+          <i class="bi bi-calendar-month" style="color:#22D3EE"></i> Mensal
+        </a>
+      </div>
+    </div>
+  </div>
 </div>
+<script>
+document.addEventListener('click', function(e) {
+  var d = document.getElementById('docx-dropdown');
+  var t = document.getElementById('btn-docx-toggle');
+  if (d && t && !t.contains(e.target) && !d.contains(e.target)) d.classList.add('d-none');
+});
+</script>
 
 <div class="card-radar mb-4" style="background:rgba(34,197,94,.07);border-color:rgba(34,197,94,.25)">
   <div class="d-flex align-items-center gap-3">

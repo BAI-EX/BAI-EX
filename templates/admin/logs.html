@@ -28,10 +28,10 @@
 <!-- Filtro por ação -->
 <div class="card-radar mb-4">
   <form method="GET" class="d-flex gap-2 align-items-center flex-wrap">
-    <select name="acao" class="form-control-radar" style="width:200px">
-      <option value="">Todas as ações</option>
+    <select name="acao" style="width:200px;background:#161B22;color:#F0F6FC;border:1px solid #21262D;border-radius:8px;padding:.45rem .75rem;font-size:.85rem">
+      <option value="" style="background:#161B22;color:#F0F6FC">Todas as ações</option>
       {% for a in acoes_unicas %}
-      <option value="{{ a }}" {% if a == acao_filtro %}selected{% endif %}>{{ a }}</option>
+      <option value="{{ a }}" {% if a == acao_filtro %}selected{% endif %} style="background:#161B22;color:#F0F6FC">{{ a }}</option>
       {% endfor %}
     </select>
     <button type="submit" class="btn-primary-radar" style="padding:.5rem 1rem"><i class="bi bi-funnel"></i>Filtrar</button>

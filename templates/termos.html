@@ -1,95 +1,67 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Termos de Uso — BAI-EX</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    body { font-family: 'Inter', sans-serif; background: #0D1117; color: #F0F6FC; }
-    .container { max-width: 800px; padding: 3rem 1rem; }
-    h1 { color: #fff; font-size: 1.75rem; font-weight: 700; margin-bottom: .5rem; }
-    h2 { color: #22D3EE; font-size: 1.1rem; font-weight: 600; margin: 2rem 0 .75rem; }
-    p, li { color: #C9D1D9; font-size: .92rem; line-height: 1.75; }
-    hr { border-color: #21262D; margin: 2rem 0; }
-    a { color: #22D3EE; }
-    nav.topnav { background: rgba(13,17,23,.95); border-bottom: 1px solid #21262D; padding: .85rem 0; }
-    nav.topnav a { color: #F0F6FC; text-decoration: none; font-weight: 700; }
-    footer { border-top: 1px solid #21262D; padding: 2rem 0; text-align: center; color: #8B949E; font-size: .82rem; margin-top: 3rem; }
-  </style>
-</head>
-<body>
-<nav class="topnav">
-  <div class="container d-flex justify-content-between align-items-center" style="max-width:800px">
-    <a href="/"><img src="/static/logo_baiex.png" alt="BAI-EX" style="height:26px;filter:invert(1);mix-blend-mode:screen"></a>
-    <a href="/" style="font-size:.85rem;color:#8B949E">← Voltar ao início</a>
-  </div>
+{% extends "base.html" %}
+{% block title %}Termos de Uso — BAI-EX{% endblock %}
+{% block sidebar %}{% endblock %}
+{% block body %}
+<div style="min-height:100vh;background:var(--radar-dark);padding:3rem 1rem">
+<div style="max-width:760px;margin:0 auto">
+
+<nav style="margin-bottom:2rem">
+  <a href="/" style="text-decoration:none"><img src="/static/logo_baiex.png" alt="BAI-EX" style="height:26px;filter:invert(1);mix-blend-mode:screen"></a>
+  <a href="/" style="float:right;font-size:.82rem;color:var(--radar-muted);text-decoration:none">← Voltar ao início</a>
 </nav>
 
-<div class="container">
-  <h1>Termos de Uso</h1>
-  <p style="color:#8B949E;font-size:.82rem">Última atualização: Abril de 2025</p>
-  <hr>
+<h1 style="color:#fff;font-size:1.75rem;font-weight:700;margin-bottom:.25rem">📄 Termos de Uso — BAI-EX</h1>
+<p style="color:var(--radar-muted);font-size:.82rem;margin-bottom:2rem">Última atualização: Abril de 2026</p>
 
-  <h2>1. Aceitação</h2>
-  <p>Ao criar uma conta ou utilizar a plataforma BAI-EX, você concorda com estes Termos. Se não concordar, não utilize o serviço.</p>
+<hr style="border-color:#21262D;margin-bottom:2rem">
 
-  <h2>2. O Serviço</h2>
-  <p>A BAI-EX é uma plataforma SaaS de monitoramento de riscos psicossociais para conformidade com a NR-01 (Norma Regulamentadora nº 1 do Ministério do Trabalho e Emprego). O serviço inclui check-ins semanais, scores de risco, relatórios de conformidade e módulos de inteligência artificial.</p>
+{% macro h2(text) %}<h2 style="color:#22D3EE;font-size:1.05rem;font-weight:600;margin:2rem 0 .75rem">{{ text }}</h2>{% endmacro %}
+{% macro p(text) %}<p style="color:#C9D1D9;font-size:.9rem;line-height:1.75;margin-bottom:.75rem">{{ text }}</p>{% endmacro %}
 
-  <h2>3. Responsabilidades da Empresa Contratante</h2>
-  <ul>
-    <li>Obter o consentimento dos funcionários para coleta dos dados de bem-estar</li>
-    <li>Informar os colaboradores sobre o monitoramento e sua finalidade</li>
-    <li>Utilizar os dados exclusivamente para fins preventivos e de conformidade</li>
-    <li>Manter sigilo sobre os dados individuais dos funcionários</li>
-    <li>Não utilizar os dados para discriminação ou penalização de colaboradores</li>
-  </ul>
+{{ h2('1. Aceitação') }}
+{{ p('Ao acessar, criar conta ou utilizar a plataforma BAI-EX, você declara que leu, compreendeu e concorda com estes Termos de Uso. Caso não concorde, não utilize o serviço.') }}
 
-  <h2>4. Limitações da BAI-EX</h2>
-  <p>A BAI-EX <strong style="color:#fff">não é</strong>:</p>
-  <ul>
-    <li>Um serviço de saúde ou assistência médica</li>
-    <li>Um substituto para avaliação clínica por profissional de saúde</li>
-    <li>Uma garantia de conformidade jurídica total com a NR-01</li>
-  </ul>
-  <p>Os relatórios gerados pela plataforma são evidências de monitoramento, mas não substituem a avaliação de médico do trabalho ou psicólogo organizacional quando exigida.</p>
+{{ h2('2. O Serviço') }}
+{{ p('A BAI-EX é uma plataforma SaaS de monitoramento e análise de riscos psicossociais, desenvolvida para apoiar empresas na gestão de riscos ocupacionais e no atendimento às diretrizes da NR-01. A plataforma oferece check-ins periódicos de bem-estar, cálculo automatizado de indicadores e scores de risco, relatórios gerenciais e analíticos, recomendações automatizadas baseadas em dados e módulos de inteligência artificial. A BAI-EX não substitui programas obrigatórios da empresa, atuando como ferramenta de apoio à gestão.') }}
 
-  <h2>5. Uso da Inteligência Artificial</h2>
-  <p>A plataforma utiliza a API da Anthropic (Claude) para geração de pareceres e recomendações. Os dados enviados à IA são anonimizados. Os resultados gerados por IA têm caráter orientativo e não constituem diagnóstico médico ou parecer jurídico.</p>
+{{ h2('3. Responsabilidades da Empresa Contratante') }}
+<ul style="color:#C9D1D9;font-size:.9rem;line-height:1.75;padding-left:1.5rem;margin-bottom:.75rem">
+  <li>Obter e registrar o consentimento dos colaboradores quando necessário</li>
+  <li>Informar os colaboradores sobre a coleta e finalidade dos dados</li>
+  <li>Utilizar os dados exclusivamente para fins preventivos e organizacionais</li>
+  <li>Garantir conformidade com a LGPD e demais legislações aplicáveis</li>
+  <li>Designar responsáveis internos para análise e tomada de decisão</li>
+  <li>Manter a confidencialidade dos dados individuais</li>
+  <li>Não utilizar os dados para práticas discriminatórias ou punitivas</li>
+</ul>
 
-  <h2>6. Pagamento e Cancelamento</h2>
-  <ul>
-    <li>Os planos são cobrados mensalmente ou anualmente conforme escolha</li>
-    <li>O cancelamento pode ser feito a qualquer momento</li>
-    <li>Não há reembolso de períodos já cobrados</li>
-    <li>O período de teste gratuito não exige cartão de crédito</li>
-  </ul>
+{{ h2('4. Limitações da Plataforma') }}
+{{ p('A BAI-EX não é um serviço médico ou de assistência à saúde, não substitui avaliação clínica ou psicológica, não constitui parecer jurídico ou trabalhista, e não é uma garantia de conformidade integral com a legislação. A plataforma fornece recomendações automatizadas de caráter informativo e não vinculante. A decisão sobre adoção de medidas é de responsabilidade exclusiva da empresa contratante.') }}
 
-  <h2>7. Propriedade Intelectual</h2>
-  <p>A plataforma, o código, o design e os algoritmos são propriedade exclusiva da BAI-EX. Os dados inseridos pelas empresas permanecem de propriedade das mesmas.</p>
+{{ h2('5. Uso de Inteligência Artificial') }}
+{{ p('A BAI-EX utiliza tecnologias de inteligência artificial para geração de análises e recomendações. Os dados enviados à IA são anonimizados sempre que possível. Os resultados possuem caráter orientativo e não substituem avaliação humana especializada. A BAI-EX não se responsabiliza por decisões tomadas exclusivamente com base em outputs de IA.') }}
 
-  <h2>8. Limitação de Responsabilidade</h2>
-  <p>A BAI-EX não se responsabiliza por danos indiretos decorrentes do uso ou incapacidade de uso da plataforma, incluindo processos trabalhistas resultantes de decisões tomadas com base nos dados da plataforma.</p>
+{{ h2('6. Pagamento, Período de Teste e Cancelamento') }}
+{{ p('A BAI-EX poderá oferecer período de teste gratuito, sem obrigatoriedade de pagamento antecipado. Ao final do período de teste, a empresa deverá optar pela contratação de um plano pago ou pelo cancelamento do uso da plataforma. Os planos da BAI-EX possuem prazo mínimo de contratação, conforme definido na proposta comercial vigente, podendo incluir período mínimo de 6 (seis) meses. Ao contratar a plataforma, a empresa declara estar ciente e de acordo com o prazo mínimo aplicável ao plano escolhido. Em caso de cancelamento antecipado antes do término do período mínimo contratado, não haverá reembolso dos valores já pagos, podendo ser aplicadas as condições previstas em contrato comercial específico.') }}
 
-  <h2>9. Alterações</h2>
-  <p>Estes termos podem ser atualizados. Notificaremos por e-mail com 30 dias de antecedência em caso de alterações relevantes.</p>
+{{ h2('7. Propriedade Intelectual') }}
+{{ p('A BAI-EX detém todos os direitos sobre a plataforma, código, algoritmos e design. Os dados inseridos pelas empresas permanecem de propriedade das mesmas. A empresa concede à BAI-EX licença para processamento dos dados conforme este contrato.') }}
 
-  <h2>10. Foro</h2>
-  <p>Fica eleito o foro da Comarca de Petrolina-PE para dirimir quaisquer controvérsias, com renúncia a qualquer outro, por mais privilegiado que seja.</p>
+{{ h2('8. Limitação de Responsabilidade') }}
+{{ p('Na máxima extensão permitida pela lei: a BAI-EX não será responsável por danos indiretos, lucros cessantes, perdas operacionais ou reputacionais; não se responsabiliza por decisões tomadas com base nos dados ou recomendações da plataforma; e a responsabilidade total da BAI-EX fica limitada ao valor pago pelo cliente nos últimos 12 meses.') }}
 
-  <hr>
-  <div class="d-flex gap-3">
-    <a href="/privacidade">Política de Privacidade</a>
-    <a href="/">Voltar ao início</a>
-  </div>
+{{ h2('9. Alterações') }}
+{{ p('Estes Termos poderão ser atualizados periodicamente. Alterações relevantes serão comunicadas com antecedência mínima de 30 dias.') }}
+
+{{ h2('10. Foro') }}
+{{ p('Fica eleito o foro da Comarca de Juazeiro-BA, com renúncia a qualquer outro, salvo disposição legal em contrário.') }}
+
+<hr style="border-color:#21262D;margin:2rem 0">
+<div style="display:flex;gap:1.5rem">
+  <a href="/privacidade" style="color:#22D3EE;font-size:.85rem;text-decoration:none">Política de Privacidade</a>
+  <a href="/" style="color:var(--radar-muted);font-size:.85rem;text-decoration:none">Voltar ao início</a>
 </div>
 
-<footer>
-  <div class="container" style="max-width:800px">
-    © 2025 BAI-EX — Burnout AI Experience · Todos os direitos reservados
-  </div>
-</footer>
-</body>
-</html>
+</div>
+</div>
+{% endblock %}
