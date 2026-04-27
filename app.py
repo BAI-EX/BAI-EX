@@ -89,6 +89,8 @@ def seed_demo():
 
 @app.route('/')
 def index():
+    if 'empresa_id' in session:
+        return redirect('/empresa/dashboard')
     return redirect('/empresa/login')
 
 # =====================================================
