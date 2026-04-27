@@ -176,9 +176,9 @@ def painel_funcionario():
 # =====================================================
 
 with app.app_context():
-    db.create_all()
-    seed_demo()
-
-# ❌ NÃO USAR app.run NO RENDER
-if __name__ == '__main__':
-    app.run(debug=True)
+    try:
+        db.create_all()
+        seed_demo()
+        print("✅ Banco OK")
+    except Exception as e:
+        print("🔥 ERRO NO INIT:", e)
