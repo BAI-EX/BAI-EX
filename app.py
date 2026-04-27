@@ -2376,7 +2376,7 @@ def solicitar_migracao():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-        seed_demo()
+        seed_data()
     print("=" * 55)
     print("  🧠 BAI-EX - Sistema de Gestão de Risco")
     print("=" * 55)
@@ -2390,3 +2390,80 @@ if __name__ == '__main__':
     print("     Usuário: admin | Senha: burnout123")
     print("=" * 55)
     app.run(debug=True, port=5002)
+
+from datetime import datetime, timedelta
+import random
+import json
+from werkzeug.security import generate_password_hash
+
+def seed_data():
+    from models import db, Empresa, Funcionario, Admin, Checkin
+
+    # Evita duplicar
+    if Empresa.query.first():
+        return
+
+    # =========================
+    # EMPRESA DEMO
+    # =========================
+    empresa = Empresa(
+        nome="Empresa Demo",
+        email="empresa@baiex.com",
+        senha=generate_password_hash("123456")
+    )
+    db.session.add(empresa)
+    db.session.commit()
+
+    # =========================
+    # FUNCIONÁRIOS
+    # =========================
+    nomes = ["João", "Maria", "Carlos", "Ana", "Pedro"]
+
+    funcionarios = []
+
+    for nome in nomes:
+        f = Funcionario(
+            nome=nome,
+            email=f"{nome.lower()}@demo.com",
+            senha=generate_password_hash("123456"),
+            empresa_id=empresa.id
+        )
+        db.session.add(f)
+        funcionarios.append(f)
+
+    db.session.commit()
+
+    # =========================
+    # ADMIN
+    # =========================
+    admin = Admin(
+        nome="Admin",
+        email="admin@baiex.com",
+        senha=generate_password_hash("123456")
+    )
+    db.session.add(admin)
+    db.session.commit()
+
+    # =========================
+    # CHECK-INS (dados)
+    # =========================
+    for f in funcionarios:
+        for i in range(4):  # 4 semanas
+            data = datetime.now() - timedelta(days=7 * i)
+
+            respostas = [random.randint(2, 5) for _ in range(8)]
+            score = sum(respostas) / len(respostas)
+
+            checkin = Checkin(
+                funcionario_id=f.id,
+                empresa_id=empresa.id,
+                data=data,
+                respostas=json.dumps(respostas),
+                score=score
+            )
+
+            db.session.add(checkin)
+
+    db.session.commit()
+
+    print("✅ Dados demo criados!")
