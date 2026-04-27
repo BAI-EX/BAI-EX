@@ -2399,13 +2399,10 @@ from werkzeug.security import generate_password_hash
 def seed_data():
     from models import db, Empresa, Funcionario, Admin, Checkin
 
-    # Evita duplicar
     if Empresa.query.first():
         return
 
-    # =========================
-    # EMPRESA DEMO
-    # =========================
+    # EMPRESA
     empresa = Empresa(
         nome="Empresa Demo",
         email="empresa@baiex.com",
@@ -2414,17 +2411,14 @@ def seed_data():
     db.session.add(empresa)
     db.session.commit()
 
-    # =========================
     # FUNCIONÁRIOS
-    # =========================
-    nomes = ["João", "Maria", "Carlos", "Ana", "Pedro"]
-
+    nomes = ["joao", "maria", "carlos", "ana", "pedro"]
     funcionarios = []
 
     for nome in nomes:
         f = Funcionario(
             nome=nome,
-            email=f"{nome.lower()}@demo.com",
+            email=f"{nome}@demo.com",
             senha=generate_password_hash("123456"),
             empresa_id=empresa.id
         )
@@ -2433,37 +2427,30 @@ def seed_data():
 
     db.session.commit()
 
-    # =========================
     # ADMIN
-    # =========================
     admin = Admin(
-        nome="Admin",
+        nome="admin",
         email="admin@baiex.com",
         senha=generate_password_hash("123456")
     )
     db.session.add(admin)
     db.session.commit()
 
-    # =========================
-    # CHECK-INS (dados)
-    # =========================
+    # CHECKINS
     for f in funcionarios:
-        for i in range(4):  # 4 semanas
-            data = datetime.now() - timedelta(days=7 * i)
+        for i in range(4):
+            data = datetime.now() - timedelta(days=7*i)
+            respostas = [random.randint(2,5) for _ in range(8)]
+            score = sum(respostas)/len(respostas)
 
-            respostas = [random.randint(2, 5) for _ in range(8)]
-            score = sum(respostas) / len(respostas)
-
-            checkin = Checkin(
+            c = Checkin(
                 funcionario_id=f.id,
                 empresa_id=empresa.id,
                 data=data,
                 respostas=json.dumps(respostas),
                 score=score
             )
-
-            db.session.add(checkin)
+            db.session.add(c)
 
     db.session.commit()
-
-    print("✅ Dados demo criados!")
+    print("SEED OK")
