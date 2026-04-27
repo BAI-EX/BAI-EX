@@ -91,7 +91,7 @@ def seed_demo():
 def index():
     if 'empresa_id' in session:
         return redirect('/empresa/dashboard')
-    return redirect('/empresa/login')
+    return render_template('landing.html')
 
 # =====================================================
 # 🔐 LOGIN EMPRESA
