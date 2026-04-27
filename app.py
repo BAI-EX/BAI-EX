@@ -7,7 +7,7 @@ app.secret_key = 'supersecretkey'
 # 🏠 LANDING
 @app.route('/')
 def index():
-    return "LANDING OK"
+    return render_template('index.html')
 
 
 # 🔐 LOGIN
