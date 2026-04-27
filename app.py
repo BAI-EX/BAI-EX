@@ -89,7 +89,7 @@ def seed_demo():
 
 @app.route('/')
 def index():
-    return "BAI-EX rodando 🚀"
+    return redirect('/empresa/login')
 
 # =====================================================
 # 🔐 LOGIN EMPRESA
